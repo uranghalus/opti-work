@@ -32,7 +32,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { index } from '@/routes/tenants';
+import { show, index } from '@/routes/tenants';
 
 type Tenant = {
     id: number;
@@ -382,7 +382,7 @@ export default function TenantIndex({ tenants, filters }: PageProps) {
                                                 </span>
                                             </div>
                                             <Link
-                                                href={`/tenants/${tenant.id}/edit`}
+                                                href={show(tenant.id)}
                                                 className="text-[11px] font-medium text-[#0071b7] transition-colors hover:text-[#0071b7]/70 dark:text-[#0093dd]"
                                             >
                                                 View details &rarr;

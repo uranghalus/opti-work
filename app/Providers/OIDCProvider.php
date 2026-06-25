@@ -28,7 +28,7 @@ class OIDCProvider extends BaseProvider
         }
 
         if ($this->hasInvalidState()) {
-            throw new InvalidStateException('Callback: invalid state.', 401);
+            throw new InvalidStateException;
         }
 
         $tokenResponse = $this->getAccessTokenResponse($this->request->input('code'));

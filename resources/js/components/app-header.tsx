@@ -29,7 +29,6 @@ import {
     DropdownMenuContent,
     DropdownMenuGroup,
     DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -39,7 +38,10 @@ import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
+import tenants from '@/routes/tenants';
+import workOrders from '@/routes/work-orders';
 import type { BreadcrumbItem, NavDropdownItem, NavItem } from '@/types';
+
 
 type Props = {
     breadcrumbs?: BreadcrumbItem[];
@@ -58,7 +60,7 @@ const workNavItems: NavDropdownItem[] = [
         title: 'Work Management',
         icon: Briefcase,
         children: [
-            { title: 'Work Orders', href: dashboard(), icon: ClipboardList },
+            { title: 'Work Orders', href: workOrders.index(), icon: ClipboardList },
             { title: 'Daily Work', href: dashboard(), icon: CalendarDays },
             { title: 'Work Planning', href: dashboard(), icon: FileText },
             { title: 'Schedule', href: dashboard(), icon: CalendarDays },
@@ -89,7 +91,7 @@ const workNavItems: NavDropdownItem[] = [
             { title: 'Employees', href: dashboard(), icon: Users },
             { title: 'Departments', href: dashboard(), icon: Building2 },
             { title: 'Divisions', href: dashboard(), icon: Building2 },
-            { title: 'Tenants', href: dashboard(), icon: Building2 },
+            { title: 'Tenants', href: tenants.index(), icon: Building2 },
         ],
     },
     {
@@ -103,9 +105,9 @@ function AppearanceToggle() {
     const { appearance, updateAppearance } = useAppearance();
 
     const nextMode = () => {
-        if (appearance === 'light') updateAppearance('dark');
-        else if (appearance === 'dark') updateAppearance('system');
-        else updateAppearance('light');
+        if (appearance === 'light') { updateAppearance('dark'); }
+        else if (appearance === 'dark') { updateAppearance('system'); }
+        else { updateAppearance('light'); }
     };
 
     return (

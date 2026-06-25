@@ -78,6 +78,16 @@ class TenantController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     */
+    public function show(Tenants $tenant): Response
+    {
+        return Inertia::render('Tenants/Show', [
+            'tenant' => $tenant,
+        ]);
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Tenants $tenant): Response

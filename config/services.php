@@ -42,6 +42,7 @@ return [
         'user_info_url' => env('OIDC_USER_INFO_URL'),
         'guzzle' => [
             'http_errors' => false,
+            'verify' => env('OIDC_VERIFY_SSL', true),
         ],
     ],
 ];

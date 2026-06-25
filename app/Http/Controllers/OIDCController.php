@@ -11,15 +11,9 @@ use Laravel\Socialite\Two\AbstractProvider;
 
 class OIDCController extends Controller
 {
-    public function redirect(Request $request)
+    public function redirect()
     {
-        $url = Socialite::driver('oidc')->redirect()->getTargetUrl();
-
-        if ($request->header('X-Inertia')) {
-            return inertia()->location($url);
-        }
-
-        return redirect($url);
+        return Socialite::driver('oidc')->redirect();
     }
 
     public function callback(Request $request)
@@ -31,6 +25,15 @@ class OIDCController extends Controller
             $ssoUser = $driver->stateless()->user();
             // Data mentah (raw) dari SSO disimpan di $ssoUser->user (array)
             $rawData = $ssoUser->user ?? [];
+            Log::info('OIDC Raw Data:', $rawData);
+
+            $department = is_array($rawData['department'] ?? null)
+                ? ($rawData['department']['name'] ?? $rawData['department']['id'] ?? json_encode($rawData['department']))
+                : ($rawData['department'] ?? null);
+
+            $position = is_array($rawData['position'] ?? null)
+                ? ($rawData['position']['name'] ?? $rawData['position']['id'] ?? json_encode($rawData['position']))
+                : ($rawData['position'] ?? null);
 
             // 2. Cari user berdasarkan email, atau buat baru jika belum ada (Upsert)
             $user = User::updateOrCreate(
@@ -39,9 +42,9 @@ class OIDCController extends Controller
                     'name' => $ssoUser->getName(),
                     'email' => $ssoUser->getEmail(),
                     'password' => null, // SSO user tidak memiliki password lokal
-                    'phone' => $rawData['whatsapp_number'],
-                    'department' => $rawData['department'] ?? null,
-                    'position' => $rawData['position'] ?? null,
+                    'phone' => $rawData['whatsapp_number'] ?? null,
+                    'department' => $department,
+                    'position' => $position,
                     'last_login_at' => $rawData['last_login_at'] ?? now(),
                     'last_login_ip' => $rawData['last_login_ip'] ?? request()->ip(),
                 ]
