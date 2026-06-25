@@ -14,11 +14,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('tenants', TenantController::class);
 
     // Work Management - Work Orders
-    Route::get('work-orders', [WorkOrderController::class, 'index'])->name('work-orders.index');
+    Route::resource('work-orders', WorkOrderController::class);
+
+    // Work Order Workflow Routes
+    Route::prefix('work-orders')->name('work-orders.')->group(function () {
+        Route::get('/{work_order}/hod-review', [WorkOrderController::class, 'hodReview'])->name('hod-review');
+        Route::post('/{work_order}/hod-approve', [WorkOrderController::class, 'hodApprove'])->name('hod-approve');
+        Route::get('/{work_order}/assign', [WorkOrderController::class, 'assign'])->name('assign');
+        Route::post('/{work_order}/assign', [WorkOrderController::class, 'assignEmployees'])->name('assign.store');
+        Route::post('/{work_order}/submit-results', [WorkOrderController::class, 'submitResults'])->name('submit-results');
+        Route::post('/{work_order}/verify', [WorkOrderController::class, 'verify'])->name('verify');
+    });
 });
 
 // Allow guests to start SSO
 Route::get('auth/redirect', [OIDCController::class, 'redirect'])->name('authsso');
 Route::get('auth/oidc/callback', [OIDCController::class, 'callback'])->name('ssocallback');
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';
