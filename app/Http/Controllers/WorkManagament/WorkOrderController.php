@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\WorkManagament;
 
 use App\Http\Controllers\Controller;
+use App\Models\Department;
 use App\Models\Tenants;
+use App\Models\WorkData;
 use App\Models\WorkOrder;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -64,26 +66,19 @@ class WorkOrderController extends Controller
         $tenants = [];
 
         // Fetch departments
-        $url = config('services.optigate_portal.url').'/api/departments';
-        $token = config('services.optigate_portal.token');
         try {
-            $response = Http::withToken($token)
-                ->timeout(10)
-                ->get($url);
-            if ($response->successful()) {
-                $departments = $response->json('data') ?? $response->json();
-            } else {
-                Log::error('Gagal mengambil data department dari API Portal: '.$response->body());
-            }
+            // Mengambil data department, diurutkan berdasarkan nama. 
+            // Sesuaikan array get() jika Anda butuh kolom lain seperti 'kode_department'.
+            $departments = Department::orderBy('nama_department')->get(['id_department', 'nama_department', 'kode_department']);
         } catch (\Throwable $th) {
-            Log::error('Exception API Department: '.$th->getMessage());
+            Log::error('Exception API Department: ' . $th->getMessage());
         }
 
         // Fetch tenants
         try {
             $tenants = Tenants::orderBy('name')->get(['id', 'name']);
         } catch (\Throwable $th) {
-            Log::error('Exception fetching tenants: '.$th->getMessage());
+            Log::error('Exception fetching tenants: ' . $th->getMessage());
         }
 
         return Inertia::render('WorkOrder/Create', [
@@ -180,7 +175,7 @@ class WorkOrderController extends Controller
         $tenants = [];
 
         // Fetch departments
-        $url = config('services.optigate_portal.url').'/api/departments';
+        $url = config('services.optigate_portal.url') . '/api/departments';
         $token = config('services.optigate_portal.token');
         try {
             $response = Http::withToken($token)
@@ -189,17 +184,17 @@ class WorkOrderController extends Controller
             if ($response->successful()) {
                 $departments = $response->json('data') ?? $response->json();
             } else {
-                Log::error('Gagal mengambil data department dari API Portal: '.$response->body());
+                Log::error('Gagal mengambil data department dari API Portal: ' . $response->body());
             }
         } catch (\Throwable $th) {
-            Log::error('Exception API Department: '.$th->getMessage());
+            Log::error('Exception API Department: ' . $th->getMessage());
         }
 
         // Fetch tenants
         try {
             $tenants = Tenants::orderBy('name')->get(['id', 'name']);
         } catch (\Throwable $th) {
-            Log::error('Exception fetching tenants: '.$th->getMessage());
+            Log::error('Exception fetching tenants: ' . $th->getMessage());
         }
 
         return Inertia::render('WorkOrder/Edit', [
@@ -304,8 +299,26 @@ class WorkOrderController extends Controller
         // Authorization: Check if user is HOD or has management role
         // For now, allow all authenticated users (implement proper auth later)
 
+        // Fetch employees from API or database
+        $employees = [];
+        $url = config('services.optigate_portal.url') . '/api/employees';
+        $token = config('services.optigate_portal.token');
+        try {
+            $response = Http::withToken($token)
+                ->timeout(10)
+                ->get($url);
+            if ($response->successful()) {
+                $employees = $response->json('data') ?? $response->json();
+            } else {
+                Log::error('Gagal mengambil data employee dari API Portal: ' . $response->body());
+            }
+        } catch (\Throwable $th) {
+            Log::error('Exception API Employee: ' . $th->getMessage());
+        }
+
         return Inertia::render('WorkOrder/HodReview', [
             'workOrder' => $workOrder->load([]),
+            'employees' => $employees,
         ]);
     }
 
@@ -318,6 +331,10 @@ class WorkOrderController extends Controller
             'hod_action' => 'required|in:execute_immediately,schedule',
             'scheduled_date' => 'required_if:hod_action,schedule|nullable|date|after_or_equal:today',
             'action_notes' => 'nullable|string',
+            'assigned_employees' => 'nullable|array',
+            'assigned_employees.*.id' => 'nullable|integer',
+            'assigned_employees.*.name' => 'nullable|string',
+            'personnel_count' => 'nullable|integer',
         ]);
 
         // Validation: Urgent By Accident must execute immediately
@@ -327,16 +344,32 @@ class WorkOrderController extends Controller
             ]);
         }
 
+        // Update work order with HOD approval data
         $workOrder->update([
             'hod_action' => $validated['hod_action'],
             'scheduled_date' => $validated['scheduled_date'] ?? null,
             'status_pekerjaan' => $validated['hod_action'] === 'execute_immediately' ? 'hod_approved' : 'scheduled',
             'keterangan' => $validated['action_notes'] ?? $workOrder->keterangan,
+            'assigned_employees' => $validated['assigned_employees'] ?? [],
+            'personnel_count' => $validated['personnel_count'] ?? 0,
         ]);
 
-        return redirect()->route('work-orders.hod-review', $workOrder->id_work_order)
+        // Create WorkData record automatically
+        $workData = WorkData::create([
+            'no_kerja' => $workOrder->no_work_order,
+            'tanggal_work_data' => now(),
+            'deskripsi' => $workOrder->rincian_pekerjaan,
+            'status_pekerjaan' => $validated['hod_action'] === 'execute_immediately' ? 'in_progress' : 'scheduled',
+            'nama_tenant' => $workOrder->tenant_name,
+            'work_department' => $workOrder->department,
+            'kode_inventory' => null,
+            'create_id_user' => Auth::id(),
+            'status_hapus' => '0',
+        ]);
+
+        return redirect()->route('work-data.show', $workData->id_work_data)
             ->with('flash', [
-                'message' => 'Work order approved successfully',
+                'message' => 'Work order approved and work data created successfully',
                 'type' => 'success',
             ]);
     }
@@ -348,7 +381,7 @@ class WorkOrderController extends Controller
     {
         // Fetch employees from API or database
         $employees = [];
-        $url = config('services.optigate_portal.url').'/api/employees';
+        $url = config('services.optigate_portal.url') . '/api/employees';
         $token = config('services.optigate_portal.token');
         try {
             $response = Http::withToken($token)
@@ -357,10 +390,10 @@ class WorkOrderController extends Controller
             if ($response->successful()) {
                 $employees = $response->json('data') ?? $response->json();
             } else {
-                Log::error('Gagal mengambil data employee dari API Portal: '.$response->body());
+                Log::error('Gagal mengambil data employee dari API Portal: ' . $response->body());
             }
         } catch (\Throwable $th) {
-            Log::error('Exception API Employee: '.$th->getMessage());
+            Log::error('Exception API Employee: ' . $th->getMessage());
         }
 
         return Inertia::render('WorkOrder/Assign', [
@@ -459,7 +492,7 @@ class WorkOrderController extends Controller
 
         // Fetch employees if needed for display
         $employees = [];
-        $url = config('services.optigate_portal.url').'/api/employees';
+        $url = config('services.optigate_portal.url') . '/api/employees';
         $token = config('services.optigate_portal.token');
         try {
             $response = Http::withToken($token)
@@ -469,7 +502,7 @@ class WorkOrderController extends Controller
                 $employees = $response->json('data') ?? $response->json();
             }
         } catch (\Throwable $th) {
-            Log::error('Exception API Employee: '.$th->getMessage());
+            Log::error('Exception API Employee: ' . $th->getMessage());
         }
 
         return Inertia::render('WorkOrder/Show', [
