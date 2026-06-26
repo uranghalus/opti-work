@@ -14,39 +14,45 @@ return new class extends Migration
         //
         Schema::create('tb_work_data', function (Blueprint $table) {
             $table->id('id_work_data');
-            $table->string('no_kerja', 50)->unique();
-            $table->date('tanggal_work_data')->nullable();
-            $table->unsignedBigInteger('id_department')->nullable();
+            $table->string('no_kerja')->unique(); // Nomor Surat Perintah Kerja (SPK) asli
 
-            // Detail Pekerjaan
-            $table->text('deskripsi')->nullable();
+            // Referensi ke Induk (Tiket Request)
+            $table->unsignedBigInteger('id_work_order')->nullable();
+
+            // Referensi ke Objek Aset
+            $table->string('kode_inventory', 50)->nullable();
+            $table->string('nama_tenant')->nullable();
+
+            // Data Planning & Delegasi (Diisi oleh HOD)
+            $table->date('tgl_rencana_mulai')->nullable();
+            $table->date('tgl_rencana_selesai')->nullable();
+            $table->string('pic_lead')->nullable(); // String NIK atau ID PIC
+            $table->integer('jumlah_personel')->nullable();
+            $table->decimal('budget_estimasi', 15, 2)->nullable();
+
+            // Status Eksekusi Lapangan: 'Planned', 'In Progress', 'Menunggu Verifikasi', 'Completed'
+            $table->string('status_pekerjaan')->default('Planned');
+
+            // Data Laporan Eksekusi Akhir (Diisi oleh Tim Lapangan)
+            $table->date('tgl_mulai_aktual')->nullable();
+            $table->date('tgl_selesai_aktual')->nullable();
             $table->string('gambar_sebelum')->nullable();
             $table->string('gambar_sesudah')->nullable();
-            $table->string('status_pekerjaan', 50)->nullable();
-
-            // Analisis & Hasil
             $table->text('prediksi_penyebab')->nullable();
             $table->text('tindakan')->nullable();
             $table->text('hasil_kesimpulan')->nullable();
             $table->text('saran_solusi')->nullable();
 
-            // Relasi Tambahan (Berdasarkan ERD)
-            $table->string('kode_inventory', 50)->nullable();
-            $table->string('nama_tenant')->nullable();
-            $table->string('work_department')->nullable();
+            // Tracking & Relasi Pelengkap
+            $table->unsignedBigInteger('modified_user')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
 
-            // Timestamps & Tracking
-            $table->timestamp('create_date')->useCurrent();
-            $table->unsignedBigInteger('create_id_user')->nullable();
-            $table->timestamp('modified_date')->nullable()->useCurrentOnUpdate();
-            $table->unsignedBigInteger('modified_id_user')->nullable();
-            $table->string('status_hapus', 10)->nullable();
-
-            // Foreign Keys
-            $table->foreign('id_department')
-                ->references('id_department')
-                ->on('tb_department')
-                ->onDelete('set null');
+            // Foreign Key
+            $table->foreign('id_work_order')
+                ->references('id_work_order')
+                ->on('tb_work_order')
+                ->onDelete('set null'); // Jika tiket dihapus, data eksekusi (riwayat aset) tidak boleh ikut hilang
         });
     }
 
