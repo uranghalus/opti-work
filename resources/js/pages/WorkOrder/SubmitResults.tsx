@@ -12,7 +12,7 @@ type WorkOrder = {
     id_work_order: number;
     no_work_order: string;
     rincian_pekerjaan: string;
-    department: string | null;
+    department_tujuan: string | null;
     priority_type: string;
     status_pekerjaan: string;
     assigned_employees: Array<{ id: number; name: string }> | null;
@@ -76,7 +76,7 @@ export default function SubmitResults({ workOrder }: PageProps) {
                         <div>
                             <Label className="text-xs text-neutral-500">Department</Label>
                             <p className="mt-1 text-sm font-medium text-neutral-900 dark:text-white">
-                                {workOrder.department || 'N/A'}
+                                {workOrder.department_tujuan || 'N/A'}
                             </p>
                         </div>
                         <div className="sm:col-span-2">

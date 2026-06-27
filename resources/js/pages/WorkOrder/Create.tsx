@@ -540,12 +540,8 @@ export default function WorkOrderCreate({ departments, tenants }: PageProps) {
                                     {/* Priority Level - Radio Button Cards */}
                                     <div className="grid gap-3">
                                         <Label>
-                                            <div className="flex items-center gap-2">
-                                                <span>Priority Level</span>
-                                                <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
-                                                    Optional
-                                                </span>
-                                            </div>
+                                            Priority Level{' '}
+                                            <span className="text-red-500">*</span>
                                         </Label>
 
                                         {/* Priority Level Radio Cards */}

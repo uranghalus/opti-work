@@ -3,59 +3,47 @@ import {
     ArrowLeft,
     Calendar,
     MapPin,
-    DollarSign,
     User,
     Building2,
     FileText,
     AlertTriangle,
     Clock,
-    CheckCircle2,
-    Users,
-    TrendingUp,
-    ClipboardList,
     Edit,
     Camera,
     Trash2,
+    Hash,
+    Tag,
+    MessageSquare,
+    Image as ImageIcon,
+    ClipboardCheck,
+    UserCheck,
+    CheckCircle2,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/workflow/StatusBadge';
 import { index as workOrdersIndex } from '@/routes/work-orders';
 
-type AssignedEmployee = {
-    id: number;
-    name: string;
-};
-
 type WorkOrder = {
     id_work_order: number;
     no_work_order: string;
     tgl_work_order: string | null;
     rincian_pekerjaan: string | null;
+    department_tujuan: string | null;
     lokasi: string | null;
-    status_pekerjaan: string | null;
-    prioritas: string | null;
+    tenant_id: string | null;
     priority_type: string | null;
     urgent_sub_type: string | null;
-    level: string | null;
-    location_type: string | null;
-    tenant_id: number | null;
-    tenant_name: string | null;
-    hod_action: string | null;
-    scheduled_date: string | null;
-    assigned_employees: AssignedEmployee[] | null;
-    personnel_count: number | null;
-    budget: string | null;
+    prioritas: string | null;
+    status_tiket: string | null;
+    status_pekerjaan: string | null;
+    user_requester: string | null;
     keterangan: string | null;
-    incident_photos: string[] | null;
+    incident_photos_urls: string[];
+    scheduled_date: string | null;
+    assigned_employees: Array<{ id: number; name: string }> | null;
+    personnel_count: number | null;
     completion_results: string | null;
-    verified_by: number | null;
-    verified_at: string | null;
-    verification_notes: string | null;
-    modified_user: number | null;
-    user: string | null;
-    department: string | null;
-    pic: string | null;
     created_at: string;
     updated_at: string;
 };
@@ -63,25 +51,6 @@ type WorkOrder = {
 type PageProps = {
     workOrder: WorkOrder;
 };
-
-function formatCurrency(amount: string | null): string {
-    if (!amount) {
-        return '-';
-    }
-
-    const num = parseFloat(amount);
-
-    if (isNaN(num)) {
-        return '-';
-    }
-
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(num);
-}
 
 function formatDate(date: string | null): string {
     if (!date) {
@@ -109,35 +78,39 @@ function formatDateTime(date: string | null): string {
     });
 }
 
-function getPriorityIcon(priorityType: string | null) {
-    if (priorityType === 'urgent') {
-        return <AlertTriangle className="size-4 text-red-500" />;
-    }
+function getPriorityConfig(priorityType: string | null, prioritas: string | null) {
+    const isUrgent = priorityType === 'urgent';
 
-    return <TrendingUp className="size-4 text-emerald-500" />;
+    const levelColors = {
+        low: {
+            bg: 'bg-emerald-50 dark:bg-emerald-500/10',
+            border: 'border-emerald-200 dark:border-emerald-500/30',
+            text: 'text-emerald-700 dark:text-emerald-400',
+            icon: 'bg-emerald-100 dark:bg-emerald-500/20',
+        },
+        medium: {
+            bg: 'bg-amber-50 dark:bg-amber-500/10',
+            border: 'border-amber-200 dark:border-amber-500/30',
+            text: 'text-amber-700 dark:text-amber-400',
+            icon: 'bg-amber-100 dark:bg-amber-500/20',
+        },
+        high: {
+            bg: 'bg-red-50 dark:bg-red-500/10',
+            border: 'border-red-200 dark:border-red-500/30',
+            text: 'text-red-700 dark:text-red-400',
+            icon: 'bg-red-100 dark:bg-red-500/20',
+        },
+    };
+
+    const level = (prioritas as keyof typeof levelColors) || 'medium';
+    const colors = levelColors[level] || levelColors.medium;
+
+    return { isUrgent, level, colors };
 }
 
 export default function WorkOrderShow({ workOrder }: PageProps) {
-    const isUrgent = workOrder.priority_type === 'urgent';
+    const { isUrgent, level, colors } = getPriorityConfig(workOrder.priority_type, workOrder.prioritas);
     const isByAccident = workOrder.urgent_sub_type === 'by_accident';
-
-    const getNextAction = () => {
-        switch (workOrder.status_pekerjaan) {
-            case 'pending_hod_review':
-                return { label: 'Review', href: `/work-orders/${workOrder.id_work_order}/hod-review` };
-            case 'hod_approved':
-            case 'scheduled':
-                return { label: 'Assign Team', href: `/work-orders/${workOrder.id_work_order}/assign` };
-            case 'assigned':
-                return { label: 'Submit Results', href: `/work-orders/${workOrder.id_work_order}/submit-results` };
-            case 'pending_verification':
-                return { label: 'Verify', href: `/work-orders/${workOrder.id_work_order}/verify` };
-            default:
-                return null;
-        }
-    };
-
-    const nextAction = getNextAction();
 
     return (
         <>
@@ -160,14 +133,6 @@ export default function WorkOrderShow({ workOrder }: PageProps) {
                                 Edit
                             </Button>
                         </Link>
-                        {nextAction && (
-                            <Link href={nextAction.href}>
-                                <Button className="gap-2 bg-linear-to-r from-[#0071b7] to-[#0093dd] text-white shadow-md shadow-[#0071b7]/25 transition-all hover:shadow-lg hover:shadow-[#0071b7]/30">
-                                    <Edit className="size-4" />
-                                    {nextAction.label}
-                                </Button>
-                            </Link>
-                        )}
                         <Button
                             variant="outline"
                             className="gap-2 text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-500/10"
@@ -185,29 +150,42 @@ export default function WorkOrderShow({ workOrder }: PageProps) {
                     </div>
                 </div>
 
-                {/* Header */}
-                <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="flex-1">
-                            <div className="mb-2 flex flex-wrap items-center gap-2">
-                                <p className="font-mono text-sm font-semibold text-[#0071b7] dark:text-[#0093dd]">
-                                    {workOrder.no_work_order}
-                                </p>
-                                <StatusBadge status={workOrder.status_pekerjaan || 'pending_hod_review'} />
-                                {isUrgent && (
-                                    <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700 dark:bg-red-500/20 dark:text-red-400">
-                                        <AlertTriangle className="size-3" />
-                                        Urgent
-                                    </span>
-                                )}
+                {/* Hero Header */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0071b7] via-[#0089cc] to-[#0093dd] p-8 shadow-lg">
+                    <div className="absolute top-0 right-0 -mt-8 -mr-8 size-32 rounded-full bg-white/10 blur-2xl" />
+                    <div className="absolute bottom-0 left-0 -mb-12 -ml-12 size-40 rounded-full bg-white/5 blur-3xl" />
+                    <div className="relative">
+                        <div className="mb-4 flex flex-wrap items-center gap-3">
+                            <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                                <Hash className="size-3.5" />
+                                {workOrder.no_work_order}
                             </div>
-                            <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
-                                {workOrder.rincian_pekerjaan || 'No Description'}
-                            </h1>
-                            {workOrder.department && (
-                                <div className="mt-2 flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+                            <StatusBadge status={workOrder.status_tiket || 'Pending HOD'} />
+                            {isUrgent && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-red-500 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
+                                    <AlertTriangle className="size-3" />
+                                    Urgent
+                                </span>
+                            )}
+                        </div>
+                        <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                            {workOrder.rincian_pekerjaan || 'No Description'}
+                        </h1>
+                        <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-white/80">
+                            {workOrder.department_tujuan && (
+                                <div className="flex items-center gap-1.5">
                                     <Building2 className="size-4" />
-                                    <span>{workOrder.department}</span>
+                                    <span>{workOrder.department_tujuan}</span>
+                                </div>
+                            )}
+                            <div className="flex items-center gap-1.5">
+                                <Calendar className="size-4" />
+                                <span>{formatDate(workOrder.tgl_work_order)}</span>
+                            </div>
+                            {workOrder.user_requester && (
+                                <div className="flex items-center gap-1.5">
+                                    <User className="size-4" />
+                                    <span>by {workOrder.user_requester}</span>
                                 </div>
                             )}
                         </div>
@@ -216,15 +194,17 @@ export default function WorkOrderShow({ workOrder }: PageProps) {
 
                 {/* Urgent Warning */}
                 {isUrgent && isByAccident && (
-                    <div className="rounded-2xl border border-red-200 bg-red-50 p-6 dark:border-red-800 dark:bg-red-500/10">
+                    <div className="rounded-2xl border-2 border-red-200 bg-gradient-to-r from-red-50 to-red-100 p-5 dark:border-red-500/30 dark:from-red-500/10 dark:to-red-500/5">
                         <div className="flex items-start gap-3">
-                            <AlertTriangle className="mt-0.5 size-6 text-red-600 dark:text-red-400" />
+                            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-red-100 dark:bg-red-500/20">
+                                <AlertTriangle className="size-5 text-red-600 dark:text-red-400" />
+                            </div>
                             <div>
-                                <h3 className="text-sm font-semibold text-red-800 dark:text-red-300">
-                                    Urgent By Accident
+                                <h3 className="text-sm font-bold text-red-800 dark:text-red-300">
+                                    Immediate Execution Required
                                 </h3>
                                 <p className="mt-1 text-sm text-red-700 dark:text-red-400">
-                                    This work order requires immediate execution. Scheduling is not permitted.
+                                    This is an urgent work order by accident. Scheduling is not permitted.
                                 </p>
                             </div>
                         </div>
@@ -235,188 +215,172 @@ export default function WorkOrderShow({ workOrder }: PageProps) {
                 <div className="grid gap-6 lg:grid-cols-3">
                     {/* Left Column - Main Details */}
                     <div className="space-y-6 lg:col-span-2">
-                        {/* Work Order Details */}
+                        {/* Work Order Info Card */}
                         <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                            <div className="mb-4 flex items-center gap-2">
-                                <FileText className="size-5 text-[#0071b7] dark:text-[#0093dd]" />
-                                <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                                    Work Order Details
-                                </h2>
-                            </div>
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div>
-                                    <Label className="text-xs text-neutral-500">Work Order Date</Label>
-                                    <div className="mt-1 flex items-center gap-2">
-                                        <Calendar className="size-4 text-neutral-400" />
-                                        <p className="text-sm font-medium text-neutral-900 dark:text-white">
-                                            {formatDate(workOrder.tgl_work_order)}
-                                        </p>
-                                    </div>
+                            <div className="mb-5 flex items-center gap-3">
+                                <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#0071b7] to-[#0093dd] shadow-sm">
+                                    <FileText className="size-5 text-white" />
                                 </div>
                                 <div>
-                                    <Label className="text-xs text-neutral-500">Location Type</Label>
-                                    <p className="mt-1 text-sm font-medium capitalize text-neutral-900 dark:text-white">
-                                        {workOrder.location_type || '-'}
+                                    <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                        Work Order Details
+                                    </h2>
+                                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                        Core information about this request
                                     </p>
                                 </div>
-                                {workOrder.location_type === 'tenant' ? (
-                                    <div className="sm:col-span-2">
-                                        <Label className="text-xs text-neutral-500">Tenant</Label>
-                                        <div className="mt-1 flex items-center gap-2">
-                                            <Building2 className="size-4 text-neutral-400" />
-                                            <p className="text-sm font-medium text-neutral-900 dark:text-white">
-                                                {workOrder.tenant_name || '-'}
-                                            </p>
-                                        </div>
+                            </div>
+
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-800/50">
+                                    <div className="mb-1 flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
+                                        <Calendar className="size-3.5" />
+                                        Work Order Date
                                     </div>
-                                ) : (
-                                    workOrder.lokasi && (
-                                        <div className="sm:col-span-2">
-                                            <Label className="text-xs text-neutral-500">Location</Label>
-                                            <div className="mt-1 flex items-center gap-2">
-                                                <MapPin className="size-4 text-neutral-400" />
-                                                <p className="text-sm font-medium text-neutral-900 dark:text-white">
-                                                    {workOrder.lokasi}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )
-                                )}
-                                {workOrder.keterangan && (
-                                    <div className="sm:col-span-2">
-                                        <Label className="text-xs text-neutral-500">Description / Notes</Label>
-                                        <p className="mt-1 text-sm text-neutral-900 dark:text-white">
-                                            {workOrder.keterangan}
-                                        </p>
+                                    <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                        {formatDate(workOrder.tgl_work_order)}
+                                    </p>
+                                </div>
+
+                                <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-800/50">
+                                    <div className="mb-1 flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
+                                        <Building2 className="size-3.5" />
+                                        Department
                                     </div>
-                                )}
+                                    <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                        {workOrder.department_tujuan || '-'}
+                                    </p>
+                                </div>
+
+                                <div className="sm:col-span-2 rounded-xl border border-neutral-100 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-800/50">
+                                    <div className="mb-1 flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
+                                        <MapPin className="size-3.5" />
+                                        Location
+                                    </div>
+                                    <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                        {workOrder.lokasi || '-'}
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Priority & Classification */}
+                        {/* Priority Card */}
                         <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                            <div className="mb-4 flex items-center gap-2">
-                                <AlertTriangle className="size-5 text-[#0071b7] dark:text-[#0093dd]" />
-                                <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                                    Priority & Classification
-                                </h2>
-                            </div>
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div>
-                                    <Label className="text-xs text-neutral-500">Priority Type</Label>
-                                    <div className="mt-1 flex items-center gap-2">
-                                        {getPriorityIcon(workOrder.priority_type)}
-                                        <p className="text-sm font-medium capitalize text-neutral-900 dark:text-white">
-                                            {workOrder.priority_type || 'normal'}
-                                        </p>
-                                    </div>
+                            <div className="mb-5 flex items-center gap-3">
+                                <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-sm">
+                                    <AlertTriangle className="size-5 text-white" />
                                 </div>
                                 <div>
-                                    <Label className="text-xs text-neutral-500">Priority Level</Label>
-                                    <p className="mt-1 text-sm font-medium capitalize text-neutral-900 dark:text-white">
+                                    <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                        Priority & Classification
+                                    </h2>
+                                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                        Urgency and priority level
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div className={`rounded-xl border-2 p-4 ${colors.border} ${colors.bg}`}>
+                                    <div className="mb-2 flex items-center gap-2">
+                                        <div className={`flex size-8 items-center justify-center rounded-lg ${colors.icon}`}>
+                                            <Tag className={`size-4 ${colors.text}`} />
+                                        </div>
+                                        <span className={`text-xs font-semibold ${colors.text}`}>
+                                            Priority Level
+                                        </span>
+                                    </div>
+                                    <p className="text-lg font-bold capitalize text-neutral-900 dark:text-white">
                                         {workOrder.prioritas || 'medium'}
                                     </p>
                                 </div>
-                                {workOrder.urgent_sub_type && (
-                                    <div>
-                                        <Label className="text-xs text-neutral-500">Urgent Sub-Type</Label>
-                                        <p className="mt-1 text-sm font-medium text-neutral-900 dark:text-white">
+
+                                <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-800/50">
+                                    <div className="mb-2 flex items-center gap-2">
+                                        <div className={`flex size-8 items-center justify-center rounded-lg ${isUrgent ? 'bg-red-100 dark:bg-red-500/20' : 'bg-emerald-100 dark:bg-emerald-500/20'}`}>
+                                            {isUrgent ? (
+                                                <AlertTriangle className="size-4 text-red-600 dark:text-red-400" />
+                                            ) : (
+                                                <Tag className="size-4 text-emerald-600 dark:text-emerald-400" />
+                                            )}
+                                        </div>
+                                        <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+                                            Type
+                                        </span>
+                                    </div>
+                                    <p className="text-lg font-bold capitalize text-neutral-900 dark:text-white">
+                                        {workOrder.priority_type || 'normal'}
+                                    </p>
+                                    {workOrder.urgent_sub_type && (
+                                        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                                             {workOrder.urgent_sub_type.replace(/_/g, ' ')}
                                         </p>
-                                    </div>
-                                )}
-                                {workOrder.level && (
-                                    <div>
-                                        <Label className="text-xs text-neutral-500">Level</Label>
-                                        <p className="mt-1 text-sm font-medium text-neutral-900 dark:text-white">
-                                            {workOrder.level}
-                                        </p>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         </div>
 
-                        {/* Assigned Team */}
-                        {workOrder.assigned_employees && workOrder.assigned_employees.length > 0 && (
+                        {/* Notes Card */}
+                        {workOrder.keterangan && (
                             <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                                <div className="mb-4 flex items-center gap-2">
-                                    <Users className="size-5 text-[#0071b7] dark:text-[#0093dd]" />
-                                    <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                                        Assigned Team
-                                    </h2>
+                                <div className="mb-5 flex items-center gap-3">
+                                    <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-sm">
+                                        <MessageSquare className="size-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                            Notes & Remarks
+                                        </h2>
+                                        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                            Additional context for this work order
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {workOrder.assigned_employees.map((employee) => (
-                                        <div
-                                            key={employee.id}
-                                            className="flex items-center gap-2 rounded-full bg-[#0071b7]/5 px-4 py-2 dark:bg-[#0093dd]/10"
-                                        >
-                                            <User className="size-4 text-[#0071b7] dark:text-[#0093dd]" />
-                                            <span className="text-sm font-medium text-neutral-900 dark:text-white">
-                                                {employee.name}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                                {workOrder.personnel_count && (
-                                    <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
-                                        Total Personnel: <span className="font-semibold">{workOrder.personnel_count}</span>
+                                <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-800/50">
+                                    <p className="whitespace-pre-wrap text-sm text-neutral-700 dark:text-neutral-300">
+                                        {workOrder.keterangan}
                                     </p>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Completion Results */}
-                        {workOrder.completion_results && (
-                            <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                                <div className="mb-4 flex items-center gap-2">
-                                    <CheckCircle2 className="size-5 text-[#0071b7] dark:text-[#0093dd]" />
-                                    <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                                        Completion Results
-                                    </h2>
                                 </div>
-                                <p className="whitespace-pre-wrap text-sm text-neutral-900 dark:text-white">
-                                    {workOrder.completion_results}
-                                </p>
                             </div>
                         )}
 
                         {/* Incident Photos */}
-                        {workOrder.incident_photos && workOrder.incident_photos.length > 0 && (
+                        {workOrder.incident_photos_urls && workOrder.incident_photos_urls.length > 0 && (
                             <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                                <div className="mb-4 flex items-center gap-2">
-                                    <Camera className="size-5 text-[#0071b7] dark:text-[#0093dd]" />
-                                    <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                                        Incident Photos ({workOrder.incident_photos.length})
-                                    </h2>
+                                <div className="mb-5 flex items-center gap-3">
+                                    <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 shadow-sm">
+                                        <Camera className="size-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                            Incident Photos
+                                        </h2>
+                                        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                            {workOrder.incident_photos_urls.length} photo(s) attached
+                                        </p>
+                                    </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                                    {workOrder.incident_photos.map((photo, index) => {
-                                        const photoUrl = photo.startsWith('http')
-                                            ? photo
-                                            : `/storage/${photo}`;
-
-                                        return (
-                                            <a
-                                                key={index}
-                                                href={photoUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="group relative aspect-square overflow-hidden rounded-lg border border-neutral-200 transition-all hover:shadow-lg dark:border-neutral-700"
-                                            >
-                                                <img
-                                                    src={photoUrl}
-                                                    alt={`Incident photo ${index + 1}`}
-                                                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                                                />
-                                                <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-opacity group-hover:bg-black/40 group-hover:opacity-100">
-                                                    <div className="rounded-full bg-white/90 p-2">
-                                                        <Camera className="size-4 text-[#0071b7]" />
-                                                    </div>
+                                    {workOrder.incident_photos_urls.map((photoUrl, index) => (
+                                        <a
+                                            key={index}
+                                            href={photoUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="group relative aspect-square overflow-hidden rounded-xl border border-neutral-200 transition-all hover:shadow-lg dark:border-neutral-700"
+                                        >
+                                            <img
+                                                src={photoUrl}
+                                                alt={`Incident photo ${index + 1}`}
+                                                className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                                            />
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-opacity group-hover:bg-black/40 group-hover:opacity-100">
+                                                <div className="rounded-full bg-white/90 p-2">
+                                                    <ImageIcon className="size-4 text-[#0071b7]" />
                                                 </div>
-                                            </a>
-                                        );
-                                    })}
+                                            </div>
+                                        </a>
+                                    ))}
                                 </div>
                             </div>
                         )}
@@ -424,143 +388,298 @@ export default function WorkOrderShow({ workOrder }: PageProps) {
 
                     {/* Right Column - Sidebar */}
                     <div className="space-y-6">
-                        {/* Status & Timeline */}
+                        {/* Status Card */}
                         <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                            <div className="mb-4 flex items-center gap-2">
-                                <Clock className="size-5 text-[#0071b7] dark:text-[#0093dd]" />
-                                <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                                    Status & Timeline
-                                </h2>
+                            <div className="mb-5 flex items-center gap-3">
+                                <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#0071b7] to-[#0093dd] shadow-sm">
+                                    <Clock className="size-5 text-white" />
+                                </div>
+                                <div>
+                                    <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                        Status
+                                    </h2>
+                                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                        Current workflow state
+                                    </p>
+                                </div>
                             </div>
+
                             <div className="space-y-4">
                                 <div>
-                                    <Label className="text-xs text-neutral-500">Current Status</Label>
-                                    <div className="mt-2">
-                                        <StatusBadge status={workOrder.status_pekerjaan || 'pending_hod_review'} />
-                                    </div>
+                                    <p className="mb-2 text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                                        Current Status
+                                    </p>
+                                    <StatusBadge status={workOrder.status_tiket || 'Pending HOD'} />
                                 </div>
-                                {workOrder.hod_action && (
-                                    <div>
-                                        <Label className="text-xs text-neutral-500">HOD Action</Label>
-                                        <p className="mt-1 text-sm font-medium capitalize text-neutral-900 dark:text-white">
-                                            {workOrder.hod_action.replace(/_/g, ' ')}
-                                        </p>
-                                    </div>
-                                )}
-                                {workOrder.scheduled_date && (
-                                    <div>
-                                        <Label className="text-xs text-neutral-500">Scheduled Date</Label>
-                                        <div className="mt-1 flex items-center gap-2">
-                                            <Calendar className="size-4 text-neutral-400" />
-                                            <p className="text-sm font-medium text-neutral-900 dark:text-white">
-                                                {formatDate(workOrder.scheduled_date)}
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-                                {workOrder.verified_at && (
-                                    <div>
-                                        <Label className="text-xs text-neutral-500">Verified At</Label>
-                                        <div className="mt-1 flex items-center gap-2">
-                                            <CheckCircle2 className="size-4 text-emerald-500" />
-                                            <p className="text-sm font-medium text-neutral-900 dark:text-white">
-                                                {formatDateTime(workOrder.verified_at)}
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-                                {workOrder.verification_notes && (
-                                    <div>
-                                        <Label className="text-xs text-neutral-500">Verification Notes</Label>
-                                        <p className="mt-1 text-sm text-neutral-900 dark:text-white">
-                                            {workOrder.verification_notes}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
 
-                        {/* Budget */}
-                        {workOrder.budget && (
-                            <div className="rounded-2xl border border-amber-200/60 bg-amber-50/50 p-6 shadow-sm dark:border-amber-800/60 dark:bg-amber-500/5">
-                                <div className="mb-2 flex items-center gap-2">
-                                    <DollarSign className="size-5 text-amber-600 dark:text-amber-400" />
-                                    <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-300">
-                                        Budget
-                                    </h2>
-                                </div>
-                                <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">
-                                    {formatCurrency(workOrder.budget)}
-                                </p>
-                            </div>
-                        )}
+                                <div className="h-px bg-neutral-100 dark:bg-neutral-800" />
 
-                        {/* Personnel Info */}
-                        {(workOrder.pic || workOrder.user) && (
-                            <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                                <div className="mb-4 flex items-center gap-2">
-                                    <User className="size-5 text-[#0071b7] dark:text-[#0093dd]" />
-                                    <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                                        Personnel
-                                    </h2>
-                                </div>
-                                <div className="space-y-3">
-                                    {workOrder.pic && (
-                                        <div>
-                                            <Label className="text-xs text-neutral-500">Person In Charge</Label>
-                                            <p className="mt-1 text-sm font-medium text-neutral-900 dark:text-white">
-                                                {workOrder.pic}
-                                            </p>
-                                        </div>
-                                    )}
-                                    {workOrder.user && (
-                                        <div>
-                                            <Label className="text-xs text-neutral-500">Created By</Label>
-                                            <p className="mt-1 text-sm font-medium text-neutral-900 dark:text-white">
-                                                {workOrder.user}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Created & Updated */}
-                        <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                            <div className="mb-4 flex items-center gap-2">
-                                <ClipboardList className="size-5 text-[#0071b7] dark:text-[#0093dd]" />
-                                <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                                    Metadata
-                                </h2>
-                            </div>
-                            <div className="space-y-3 text-xs">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-neutral-500 dark:text-neutral-400">Created</span>
-                                    <span className="font-medium text-neutral-900 dark:text-white">
+                                    <span className="text-xs text-neutral-500 dark:text-neutral-400">Created</span>
+                                    <span className="text-xs font-medium text-neutral-900 dark:text-white">
                                         {formatDateTime(workOrder.created_at)}
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span className="text-neutral-500 dark:text-neutral-400">Last Updated</span>
-                                    <span className="font-medium text-neutral-900 dark:text-white">
+                                    <span className="text-xs text-neutral-500 dark:text-neutral-400">Last Updated</span>
+                                    <span className="text-xs font-medium text-neutral-900 dark:text-white">
                                         {formatDateTime(workOrder.updated_at)}
                                     </span>
                                 </div>
                             </div>
                         </div>
+
+                        {/* Requester Card */}
+                        {workOrder.user_requester && (
+                            <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                                <div className="mb-5 flex items-center gap-3">
+                                    <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+                                        <User className="size-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                            Requester
+                                        </h2>
+                                        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                            Who created this order
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 rounded-xl border border-neutral-100 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-800/50">
+                                    <div className="flex size-10 items-center justify-center rounded-full bg-[#0071b7]/10 dark:bg-[#0093dd]/20">
+                                        <User className="size-5 text-[#0071b7] dark:text-[#0093dd]" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                            {workOrder.user_requester}
+                                        </p>
+                                        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                            Requester
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Workflow Actions Card */}
+                        {workOrder.status_pekerjaan && (
+                            <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                                <div className="mb-5 flex items-center gap-3">
+                                    <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-sm">
+                                        <ClipboardCheck className="size-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                            Workflow Actions
+                                        </h2>
+                                        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                            HOD workflow steps
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    {workOrder.status_pekerjaan === 'pending_hod_review' && (
+                                        <Link
+                                            href={`/work-orders/${workOrder.id_work_order}/hod-review`}
+                                            className="flex w-full items-center gap-3 rounded-xl border-2 border-amber-200 bg-amber-50 p-4 text-left transition-all hover:border-amber-300 hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:hover:border-amber-500/50 dark:hover:bg-amber-500/20"
+                                        >
+                                            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-500/20">
+                                                <ClipboardCheck className="size-5 text-amber-600 dark:text-amber-400" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-amber-800 dark:text-amber-300">
+                                                    HOD Review Required
+                                                </p>
+                                                <p className="text-xs text-amber-600 dark:text-amber-400">
+                                                    Review and approve this work order
+                                                </p>
+                                            </div>
+                                        </Link>
+                                    )}
+
+                                    {workOrder.status_pekerjaan === 'hod_approved' && (
+                                        <Link
+                                            href={`/work-orders/${workOrder.id_work_order}/assign`}
+                                            className="flex w-full items-center gap-3 rounded-xl border-2 border-blue-200 bg-blue-50 p-4 text-left transition-all hover:border-blue-300 hover:bg-blue-100 dark:border-blue-500/30 dark:bg-blue-500/10 dark:hover:border-blue-500/50 dark:hover:bg-blue-500/20"
+                                        >
+                                            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-500/20">
+                                                <UserCheck className="size-5 text-blue-600 dark:text-blue-400" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-blue-800 dark:text-blue-300">
+                                                    Assign Team
+                                                </p>
+                                                <p className="text-xs text-blue-600 dark:text-blue-400">
+                                                    Select employees to execute
+                                                </p>
+                                            </div>
+                                        </Link>
+                                    )}
+
+                                    {(workOrder.status_pekerjaan === 'scheduled' ||
+                                        workOrder.status_pekerjaan === 'assigned' ||
+                                        workOrder.status_pekerjaan === 'in_progress') && (
+                                            <Link
+                                                href={`/work-orders/${workOrder.id_work_order}/submit-results`}
+                                                className="flex w-full items-center gap-3 rounded-xl border-2 border-emerald-200 bg-emerald-50 p-4 text-left transition-all hover:border-emerald-300 hover:bg-emerald-100 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:hover:border-emerald-500/50 dark:hover:bg-emerald-500/20"
+                                            >
+                                                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-500/20">
+                                                    <CheckCircle2 className="size-5 text-emerald-600 dark:text-emerald-400" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
+                                                        Submit Results
+                                                    </p>
+                                                    <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                                                        Report work completion
+                                                    </p>
+                                                </div>
+                                            </Link>
+                                        )}
+
+                                    {workOrder.status_pekerjaan === 'pending_verification' && (
+                                        <Link
+                                            href={`/work-orders/${workOrder.id_work_order}/verify`}
+                                            className="flex w-full items-center gap-3 rounded-xl border-2 border-purple-200 bg-purple-50 p-4 text-left transition-all hover:border-purple-300 hover:bg-purple-100 dark:border-purple-500/30 dark:bg-purple-500/10 dark:hover:border-purple-500/50 dark:hover:bg-purple-500/20"
+                                        >
+                                            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-500/20">
+                                                <CheckCircle2 className="size-5 text-purple-600 dark:text-purple-400" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-purple-800 dark:text-purple-300">
+                                                    Verify Completion
+                                                </p>
+                                                <p className="text-xs text-purple-600 dark:text-purple-400">
+                                                    Review and verify results
+                                                </p>
+                                            </div>
+                                        </Link>
+                                    )}
+
+                                    {workOrder.status_pekerjaan === 'completed' && (
+                                        <div className="rounded-xl border-2 border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-500/30 dark:bg-emerald-500/10">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-500/20">
+                                                    <CheckCircle2 className="size-5 text-emerald-600 dark:text-emerald-400" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
+                                                        Completed
+                                                    </p>
+                                                    <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                                                        This work order is finished
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {workOrder.status_pekerjaan === 'rejected' && (
+                                        <div className="rounded-xl border-2 border-red-200 bg-red-50 p-4 dark:border-red-500/30 dark:bg-red-500/10">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-red-100 dark:bg-red-500/20">
+                                                    <AlertTriangle className="size-5 text-red-600 dark:text-red-400" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-red-800 dark:text-red-300">
+                                                        Rejected
+                                                    </p>
+                                                    <p className="text-xs text-red-600 dark:text-red-400">
+                                                        This work order was rejected
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Assigned Team Card */}
+                        {workOrder.assigned_employees && workOrder.assigned_employees.length > 0 && (
+                            <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                                <div className="mb-5 flex items-center gap-3">
+                                    <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-sm">
+                                        <UserCheck className="size-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                            Assigned Team
+                                        </h2>
+                                        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                            {workOrder.personnel_count || workOrder.assigned_employees.length} member(s)
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    {workOrder.assigned_employees.map((emp) => (
+                                        <div
+                                            key={emp.id}
+                                            className="flex items-center gap-3 rounded-xl border border-neutral-100 bg-neutral-50 p-3 dark:border-neutral-800 dark:bg-neutral-800/50"
+                                        >
+                                            <div className="flex size-8 items-center justify-center rounded-full bg-teal-100 dark:bg-teal-500/20">
+                                                <User className="size-4 text-teal-600 dark:text-teal-400" />
+                                            </div>
+                                            <p className="text-sm font-medium text-neutral-900 dark:text-white">
+                                                {emp.name}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Scheduled Date Card */}
+                        {workOrder.scheduled_date && (
+                            <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                                <div className="mb-5 flex items-center gap-3">
+                                    <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 shadow-sm">
+                                        <Calendar className="size-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                            Scheduled Date
+                                        </h2>
+                                        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                            When execution is planned
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-800/50">
+                                    <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                        {formatDate(workOrder.scheduled_date)}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Completion Results Card */}
+                        {workOrder.completion_results && (
+                            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm dark:border-emerald-500/30 dark:bg-emerald-500/10">
+                                <div className="mb-5 flex items-center gap-3">
+                                    <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-500/20">
+                                        <CheckCircle2 className="size-5 text-emerald-600 dark:text-emerald-400" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+                                            Completion Results
+                                        </h2>
+                                        <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                                            Submitted work results
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="rounded-xl bg-white p-4 dark:bg-neutral-900">
+                                    <p className="whitespace-pre-wrap text-sm text-neutral-900 dark:text-white">
+                                        {workOrder.completion_results}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
         </>
-    );
-}
-
-// Simple inline Label component
-function Label({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-    return (
-        <span className={`text-xs font-medium text-neutral-500 dark:text-neutral-400 ${className}`}>
-            {children}
-        </span>
     );
 }
 

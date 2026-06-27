@@ -6,6 +6,23 @@ type StatusBadgeProps = {
 };
 
 const statusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
+    // status_tiket values
+    Pending_HOD: {
+        label: 'Pending HOD',
+        color: 'text-purple-700 dark:text-purple-400',
+        bgColor: 'bg-purple-100 dark:bg-purple-500/20',
+    },
+    Executed: {
+        label: 'Executed',
+        color: 'text-emerald-700 dark:text-emerald-400',
+        bgColor: 'bg-emerald-100 dark:bg-emerald-500/20',
+    },
+    Rejected: {
+        label: 'Rejected',
+        color: 'text-red-700 dark:text-red-400',
+        bgColor: 'bg-red-100 dark:bg-red-500/20',
+    },
+    // status_pekerjaan values
     pending_hod_review: {
         label: 'Pending Review',
         color: 'text-purple-700 dark:text-purple-400',
@@ -40,16 +57,6 @@ const statusConfig: Record<string, { label: string; color: string; bgColor: stri
         label: 'Completed',
         color: 'text-emerald-700 dark:text-emerald-400',
         bgColor: 'bg-emerald-100 dark:bg-emerald-500/20',
-    },
-    rejected: {
-        label: 'Rejected',
-        color: 'text-red-700 dark:text-red-400',
-        bgColor: 'bg-red-100 dark:bg-red-500/20',
-    },
-    not_yet: {
-        label: 'Not Yet',
-        color: 'text-amber-700 dark:text-amber-400',
-        bgColor: 'bg-amber-100 dark:bg-amber-500/20',
     },
 };
 

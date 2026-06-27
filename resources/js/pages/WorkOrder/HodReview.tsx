@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { StatusBadge } from '@/components/workflow/StatusBadge';
-import { WorkflowStepper } from '@/components/workflow/WorkflowStepper';
 import { index as workOrdersIndex } from '@/routes/work-orders';
 
 type Employee = {
@@ -27,13 +26,9 @@ type WorkOrder = {
     prioritas: string;
     priority_type: string;
     urgent_sub_type: string | null;
-    location_type: string;
-    tenant_name: string | null;
-    budget: string;
+    department_tujuan: string | null;
     keterangan: string | null;
-    department: string | null;
-    pic: string | null;
-    user: string;
+    user_requester: string;
 };
 
 type PageProps = {
@@ -81,7 +76,7 @@ export default function HodReview({ workOrder, employees = [] }: PageProps) {
                 </Link>
 
                 {/* Header with Gradient */}
-                <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-[#0071b7] via-[#0089cc] to-[#0093dd] p-8 shadow-lg">
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0071b7] via-[#0089cc] to-[#0093dd] p-8 shadow-lg">
                     <div className="absolute top-0 right-0 -mt-8 -mr-8 size-32 rounded-full bg-white/10 blur-2xl" />
                     <div className="absolute bottom-0 left-0 -mb-12 -ml-12 size-40 rounded-full bg-white/5 blur-3xl" />
                     <div className="relative flex items-start justify-between">
@@ -101,22 +96,19 @@ export default function HodReview({ workOrder, employees = [] }: PageProps) {
                     </div>
                 </div>
 
-                {/* Workflow Stepper */}
-                <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                    <WorkflowStepper currentStep={1} steps={[]} />
-                </div>
-
                 {/* Urgent Warning */}
                 {isUrgentByAccident && (
-                    <div className="rounded-2xl border border-red-200 bg-red-50 p-6 dark:border-red-800 dark:bg-red-500/10">
+                    <div className="rounded-2xl border-2 border-red-200 bg-gradient-to-r from-red-50 to-red-100 p-5 dark:border-red-500/30 dark:from-red-500/10 dark:to-red-500/5">
                         <div className="flex items-start gap-3">
-                            <AlertTriangle className="mt-0.5 size-6 text-red-600 dark:text-red-400" />
+                            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-red-100 dark:bg-red-500/20">
+                                <AlertTriangle className="size-5 text-red-600 dark:text-red-400" />
+                            </div>
                             <div>
-                                <h3 className="text-sm font-semibold text-red-800 dark:text-red-300">
-                                    Urgent By Accident
+                                <h3 className="text-sm font-bold text-red-800 dark:text-red-300">
+                                    Immediate Execution Required
                                 </h3>
                                 <p className="mt-1 text-sm text-red-700 dark:text-red-400">
-                                    This work order requires immediate execution. Scheduling is not permitted.
+                                    This is an urgent work order by accident. Scheduling is not permitted.
                                 </p>
                             </div>
                         </div>
@@ -141,7 +133,7 @@ export default function HodReview({ workOrder, employees = [] }: PageProps) {
                         <div>
                             <Label className="text-xs text-neutral-500">Department</Label>
                             <p className="mt-1 text-sm font-medium text-neutral-900 dark:text-white">
-                                {workOrder.department || 'N/A'}
+                                {workOrder.department_tujuan || 'N/A'}
                             </p>
                         </div>
                         <div className="sm:col-span-2">
@@ -151,11 +143,9 @@ export default function HodReview({ workOrder, employees = [] }: PageProps) {
                             </p>
                         </div>
                         <div>
-                            <Label className="text-xs text-neutral-500">Location/Tenant</Label>
+                            <Label className="text-xs text-neutral-500">Location</Label>
                             <p className="mt-1 text-sm text-neutral-900 dark:text-white">
-                                {workOrder.location_type === 'tenant'
-                                    ? workOrder.tenant_name || 'N/A'
-                                    : workOrder.lokasi || 'N/A'}
+                                {workOrder.lokasi || 'N/A'}
                             </p>
                         </div>
                         <div>
@@ -319,7 +309,7 @@ export default function HodReview({ workOrder, employees = [] }: PageProps) {
                             </div>
 
                             {/* Employee Assignment Section */}
-                            <div className="mt-6 rounded-2xl border-2 border-dashed border-[#0071b7]/30 bg-linear-to-br from-[#0071b7]/5 to-transparent p-6 dark:border-[#0093dd]/30 dark:from-[#0093dd]/5">
+                            <div className="rounded-2xl border-2 border-dashed border-[#0071b7]/30 bg-gradient-to-br from-[#0071b7]/5 to-transparent p-6 dark:border-[#0093dd]/30 dark:from-[#0093dd]/5">
                                 <div className="mb-4 flex items-center gap-2">
                                     <Users className="size-5 text-[#0071b7] dark:text-[#0093dd]" />
                                     <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
@@ -367,7 +357,7 @@ export default function HodReview({ workOrder, employees = [] }: PageProps) {
                                                                 }`}
                                                         >
                                                             <div className="flex items-center gap-3">
-                                                                <div className="flex size-9 items-center justify-center rounded-full bg-linear-to-br from-[#0071b7] to-[#0093dd] text-sm font-semibold text-white">
+                                                                <div className="flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-[#0071b7] to-[#0093dd] text-sm font-semibold text-white">
                                                                     {employee.name.charAt(0).toUpperCase()}
                                                                 </div>
                                                                 <div>
@@ -395,7 +385,7 @@ export default function HodReview({ workOrder, employees = [] }: PageProps) {
 
                                     {/* Selected Employees */}
                                     {selectedEmployees.length > 0 && (
-                                        <div className="rounded-xl border border-[#0071b7]/20 bg-linear-to-br from-[#0071b7]/5 to-transparent p-4 dark:border-[#0093dd]/20 dark:from-[#0093dd]/5">
+                                        <div className="rounded-xl border border-[#0071b7]/20 bg-gradient-to-br from-[#0071b7]/5 to-transparent p-4 dark:border-[#0093dd]/20 dark:from-[#0093dd]/5">
                                             <Label className="mb-2 block text-xs font-medium text-[#0071b7] dark:text-[#0093dd]">
                                                 Selected Team Members
                                             </Label>
@@ -405,7 +395,7 @@ export default function HodReview({ workOrder, employees = [] }: PageProps) {
                                                         key={employee.id}
                                                         className="flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-sm transition-all hover:shadow-md dark:bg-neutral-900"
                                                     >
-                                                        <div className="flex size-6 items-center justify-center rounded-full bg-linear-to-br from-[#0071b7] to-[#0093dd] text-xs font-semibold text-white">
+                                                        <div className="flex size-6 items-center justify-center rounded-full bg-gradient-to-br from-[#0071b7] to-[#0093dd] text-xs font-semibold text-white">
                                                             {employee.name.charAt(0).toUpperCase()}
                                                         </div>
                                                         <span className="text-sm font-medium text-neutral-900 dark:text-white">
@@ -450,7 +440,7 @@ export default function HodReview({ workOrder, employees = [] }: PageProps) {
                             </div>
 
                             {/* Actions */}
-                            <div className="mt-8 flex items-center justify-end gap-3">
+                            <div className="flex items-center justify-end gap-3">
                                 <Link href={workOrdersIndex.url()}>
                                     <Button type="button" variant="outline">
                                         Cancel
@@ -459,7 +449,7 @@ export default function HodReview({ workOrder, employees = [] }: PageProps) {
                                 <Button
                                     disabled={processing || selectedEmployees.length === 0}
                                     type="submit"
-                                    className="bg-linear-to-r from-[#0071b7] to-[#0093dd] text-white shadow-md shadow-[#0071b7]/25 hover:shadow-lg hover:shadow-[#0071b7]/30 disabled:opacity-50"
+                                    className="bg-gradient-to-r from-[#0071b7] to-[#0093dd] text-white shadow-md shadow-[#0071b7]/25 hover:shadow-lg hover:shadow-[#0071b7]/30 disabled:opacity-50"
                                 >
                                     {processing ? (
                                         <>
