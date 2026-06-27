@@ -35,6 +35,10 @@ return new class extends Migration
             $table->unsignedBigInteger('modified_user')->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->string('user')->nullable();
+            $table->string('department')->nullable();
+            $table->string('pic')->nullable();
         });
     }
 

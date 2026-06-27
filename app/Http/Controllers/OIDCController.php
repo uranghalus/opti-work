@@ -24,6 +24,7 @@ class OIDCController extends Controller
             /** @var SocialiteOAuth2AbstractProvider $driver */
             $driver = Socialite::driver('oidc');
             $ssoUser = $driver->stateless()->user();
+            // dd($ssoUser);
 
             // Data mentah (raw) dari SSO disimpan di $ssoUser->user (array)
             $rawData = $ssoUser->user ?? [];
