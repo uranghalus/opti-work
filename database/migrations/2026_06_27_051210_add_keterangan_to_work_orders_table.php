@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tb_work_order', function (Blueprint $table) {
-            $table->text('keterangan')->nullable()->after('modified_user');
+            if (! Schema::hasColumn('tb_work_order', 'keterangan')) {
+                $table->text('keterangan')->nullable()->after('modified_user');
+            }
         });
     }
 
@@ -22,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('tb_work_order', function (Blueprint $table) {
-            $table->dropColumn('keterangan');
+            if (Schema::hasColumn('tb_work_order', 'keterangan')) {
+                $table->dropColumn('keterangan');
+            }
         });
     }
 };
