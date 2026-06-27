@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StatusBadge } from '@/components/workflow/StatusBadge';
-import { WorkflowStepper } from '@/components/workflow/WorkflowStepper';
 import { index as workOrdersIndex } from '@/routes/work-orders';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -20,7 +19,7 @@ type WorkOrder = {
     id_work_order: number;
     no_work_order: string;
     rincian_pekerjaan: string;
-    department: string | null;
+    department_tujuan: string | null;
     priority_type: string;
     status_pekerjaan: string;
 };
@@ -69,23 +68,24 @@ export default function Assign({ workOrder, employees }: PageProps) {
                 </Link>
 
                 {/* Header */}
-                <div className="flex items-start justify-between">
-                    <div>
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0071b7] via-[#0089cc] to-[#0093dd] p-8 shadow-lg">
+                    <div className="absolute top-0 right-0 -mt-8 -mr-8 size-32 rounded-full bg-white/10 blur-2xl" />
+                    <div className="absolute bottom-0 left-0 -mb-12 -ml-12 size-40 rounded-full bg-white/5 blur-3xl" />
+                    <div className="relative flex items-start justify-between">
+                        <div>
+                            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                                <Users className="size-3.5" />
+                                Team Assignment
+                            </div>
+                            <h1 className="text-3xl font-bold tracking-tight text-white">
                                 Assign Team
                             </h1>
-                            <StatusBadge status={workOrder.status_pekerjaan} />
+                            <p className="mt-2 text-sm text-white/80">
+                                Select employees to execute this work order
+                            </p>
                         </div>
-                        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                            Select employees to execute this work order
-                        </p>
+                        <StatusBadge status={workOrder.status_pekerjaan} className="bg-white/20 text-white backdrop-blur-sm" />
                     </div>
-                </div>
-
-                {/* Workflow Stepper */}
-                <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                    <WorkflowStepper currentStep={2} steps={[]} />
                 </div>
 
                 {/* Work Order Info */}
@@ -106,7 +106,7 @@ export default function Assign({ workOrder, employees }: PageProps) {
                         <div>
                             <Label className="text-xs text-neutral-500">Department</Label>
                             <p className="mt-1 text-sm font-medium text-neutral-900 dark:text-white">
-                                {workOrder.department || 'N/A'}
+                                {workOrder.department_tujuan || 'N/A'}
                             </p>
                         </div>
                         <div>
@@ -294,7 +294,7 @@ export default function Assign({ workOrder, employees }: PageProps) {
                                 <Button
                                     disabled={processing || selectedEmployees.length === 0}
                                     type="submit"
-                                    className="bg-linear-to-r from-[#0071b7] to-[#0093dd] text-white shadow-md shadow-[#0071b7]/25 hover:shadow-lg hover:shadow-[#0071b7]/30 disabled:opacity-50"
+                                    className="bg-gradient-to-r from-[#0071b7] to-[#0093dd] text-white shadow-md shadow-[#0071b7]/25 hover:shadow-lg hover:shadow-[#0071b7]/30 disabled:opacity-50"
                                 >
                                     {processing ? (
                                         <>

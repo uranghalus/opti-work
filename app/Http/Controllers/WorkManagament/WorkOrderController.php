@@ -5,9 +5,7 @@ namespace App\Http\Controllers\WorkManagament;
 use App\Http\Controllers\Controller;
 use App\Models\Department;
 use App\Models\Tenants;
-use App\Models\WorkData;
 use App\Models\WorkOrder;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -35,25 +33,76 @@ class WorkOrderController extends Controller
             });
         }
 
-        // Fitur Penyaringan (Filter)
+        // Filter berdasarkan Status Tiket (Pending HOD, Hod Approved, dll)
+        if ($request->filled('status')) {
+            $query->where('status_tiket', $request->status);
+        }
+
+        // Filter berdasarkan Status Pekerjaan (deprecated, use status instead)
         if ($request->filled('status_pekerjaan')) {
             $query->where('status_pekerjaan', $request->status_pekerjaan);
         }
+
+        // Filter berdasarkan Prioritas (High, Medium, Low)
         if ($request->filled('prioritas')) {
             $query->where('prioritas', $request->prioritas);
         }
-        if ($request->filled('department')) {
-            $query->where('department', $request->department);
+
+        // Filter berdasarkan Tipe Prioritas (Normal, Urgent)
+        if ($request->filled('priority_type')) {
+            $query->where('priority_type', $request->priority_type);
         }
 
-        // Ambil data dengan paginasi
-        $workOrders = $query->latest()->paginate(10)->withQueryString();
+        // Filter berdasarkan Department
+        if ($request->filled('department')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('department', 'like', "%{$request->department}%")
+                    ->orWhere('department_tujuan', 'like', "%{$request->department}%");
+            });
+        }
 
-        // Render ke komponen frontend (misal: resources/js/Pages/WorkOrder/Index.jsx)
+        // Sorting functionality
+        $sortBy = $request->get('sort_by', 'date');
+        $sortDirection = $request->get('sort_direction', 'desc');
+
+        switch ($sortBy) {
+            case 'date':
+                $query->orderBy('tgl_work_order', $sortDirection);
+                break;
+            case 'priority':
+                // Custom priority ordering: Urgent - Accident > Urgent - Owner > Normal
+                $query->orderByRaw("CASE 
+                    WHEN prioritas = 'Urgent - Accident' THEN 1 
+                    WHEN prioritas = 'Urgent - Owner' THEN 2 
+                    WHEN prioritas = 'Normal' THEN 3 
+                    ELSE 4 END");
+                break;
+            case 'status':
+                $query->orderBy('status_tiket', $sortDirection);
+                break;
+            case 'no_work_order':
+                $query->orderBy('no_work_order', $sortDirection);
+                break;
+            default:
+                $query->orderBy('id_work_order', 'desc');
+        }
+
+        $workOrders = $query->paginate(10)->withQueryString();
+
+        // Fetch departments untuk filter
+        $departments = [];
+        try {
+            $departments = Department::orderBy('nama_department')->get(['id_department', 'nama_department', 'kode_department']);
+        } catch (\Throwable $th) {
+            Log::error('Exception fetching departments for filter: '.$th->getMessage());
+        }
+
+        // Render ke komponen frontend
         return Inertia::render('WorkOrder/Index', [
             'workOrders' => $workOrders,
+            'departments' => $departments,
             // Kirim kembali parameter filter sebagai props agar state form di frontend (React) tetap terjaga
-            'filters' => $request->only(['search', 'status_pekerjaan', 'prioritas', 'department']),
+            'filters' => $request->only(['search', 'status', 'status_pekerjaan', 'prioritas', 'priority_type', 'department', 'sort_by', 'sort_direction']),
         ]);
     }
 
@@ -67,18 +116,18 @@ class WorkOrderController extends Controller
 
         // Fetch departments
         try {
-            // Mengambil data department, diurutkan berdasarkan nama. 
+            // Mengambil data department, diurutkan berdasarkan nama.
             // Sesuaikan array get() jika Anda butuh kolom lain seperti 'kode_department'.
             $departments = Department::orderBy('nama_department')->get(['id_department', 'nama_department', 'kode_department']);
         } catch (\Throwable $th) {
-            Log::error('Exception API Department: ' . $th->getMessage());
+            Log::error('Exception API Department: '.$th->getMessage());
         }
 
         // Fetch tenants
         try {
             $tenants = Tenants::orderBy('name')->get(['id', 'name']);
         } catch (\Throwable $th) {
-            Log::error('Exception fetching tenants: ' . $th->getMessage());
+            Log::error('Exception fetching tenants: '.$th->getMessage());
         }
 
         return Inertia::render('WorkOrder/Create', [
@@ -92,76 +141,64 @@ class WorkOrderController extends Controller
      */
     public function store(Request $request)
     {
+        // 1. Validasi Input
         $validated = $request->validate([
-            'rincian_pekerjaan' => 'required|string|max:255',
-            'lokasi' => 'nullable|string|max:255',
+            'department' => 'required|string',
+            'rincian_pekerjaan' => 'required|string',
             'location_type' => 'required|in:location,tenant',
-            'tenant_id' => 'nullable|integer',
-            'tenant_name' => 'nullable|string|max:255',
-            'prioritas' => 'required|string|max:50',
+            'lokasi' => 'nullable|string',
+            'tenant_id' => 'nullable|string',
+            'tenant_name' => 'nullable|string',
             'priority_type' => 'required|in:normal,urgent',
             'urgent_sub_type' => 'nullable|in:by_accident,by_owner',
-            'budget' => 'nullable|numeric|min:0',
+            'prioritas' => 'required|in:low,medium,high',
             'keterangan' => 'nullable|string',
-            'department' => 'nullable|string|max:255',
-            'pic' => 'nullable|string|max:255',
             'incident_photos' => 'nullable|array',
             'incident_photos.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ]);
 
-        // Auto-set work order date to today
-        $validated['tgl_work_order'] = now();
-
-        // Auto-set status to "pending_hod_review"
-        $validated['status_pekerjaan'] = 'pending_hod_review';
-
-        // Auto-set user and modified_user from logged-in session
-        $validated['user'] = Auth::user()->name ?? 'System';
-        $validated['modified_user'] = Auth::id();
-
-        // Handle incident photos upload to S3
-        $incidentPhotos = [];
-        if ($request->hasFile('incident_photos')) {
-            foreach ($request->file('incident_photos') as $photo) {
-                $path = $photo->store('incident-photos', 's3');
-                $incidentPhotos[] = $path;
-            }
+        // 2. Mapping & Logika Lokasi (Penyatuan Tenant/Lokasi)
+        $validated['department_tujuan'] = $validated['department'];
+        if ($request->location_type === 'tenant') {
+            $validated['lokasi'] = $request->tenant_name;
+            $validated['tenant_id'] = $request->tenant_id;
+        } else {
+            $validated['lokasi'] = $request->lokasi;
         }
-        $validated['incident_photos'] = $incidentPhotos;
 
-        // Auto-generate work order number: WO.DDMMYYYY.department_name.sequence_number
-        $date = Carbon::parse($validated['tgl_work_order']);
-        $dateString = $date->format('dmY'); // DDMMYYYY format
-        $department = $validated['department'] ?? 'General';
+        // Remove fields not in database
+        unset($validated['department'], $validated['location_type'], $validated['tenant_name']);
 
-        // Get the last sequence number for this department on this date
-        $lastWorkOrder = WorkOrder::where('tgl_work_order', $validated['tgl_work_order'])
-            ->where('department', $department)
+        // 3. User & Status Awal
+        $validated['tgl_work_order'] = now()->toDateString();
+        $validated['status_tiket'] = 'Pending HOD';
+        $validated['user_requester'] = Auth::guard()->user()->name ?? 'System';
+
+        // 4. Handle S3 Incident Photos
+        if ($request->hasFile('incident_photos')) {
+            $paths = [];
+            foreach ($request->file('incident_photos') as $photo) {
+                $paths[] = $photo->store('incident-photos', 's3');
+            }
+            $validated['incident_photos'] = $paths;
+        }
+
+        // 5. Sequence Generator Nomor WO
+        $dateString = now()->format('dmY');
+        $deptCode = strtoupper($validated['department_tujuan']);
+
+        $lastWo = WorkOrder::whereDate('tgl_work_order', now())
+            ->where('department_tujuan', $validated['department_tujuan'])
             ->orderBy('id_work_order', 'desc')
             ->first();
 
-        $sequenceNumber = $lastWorkOrder ?
-            (int) substr($lastWorkOrder->no_work_order, -3) + 1 :
-            1;
+        $seq = $lastWo ? (int) substr($lastWo->no_work_order, -3) + 1 : 1;
+        $validated['no_work_order'] = sprintf('WO.%s.%s.%s', $dateString, $deptCode, str_pad($seq, 3, '0', STR_PAD_LEFT));
 
-        // Format sequence number with leading zeros (3 digits)
-        $formattedSequence = str_pad($sequenceNumber, 3, '0', STR_PAD_LEFT);
+        // 6. Save
+        WorkOrder::create($validated);
 
-        // Generate work order number: WO.24062026.IT.001
-        $validated['no_work_order'] = sprintf(
-            'WO.%s.%s.%s',
-            $dateString,
-            strtoupper($department),
-            $formattedSequence
-        );
-
-        $workOrder = WorkOrder::create($validated);
-
-        return redirect()->route('work-orders.index')
-            ->with('flash', [
-                'message' => 'Work order created successfully',
-                'type' => 'success',
-            ]);
+        return redirect()->route('work-orders.index')->with('success', 'Work order created successfully');
     }
 
     /**
@@ -174,31 +211,22 @@ class WorkOrderController extends Controller
         $departments = [];
         $tenants = [];
 
-        // Fetch departments
-        $url = config('services.optigate_portal.url') . '/api/departments';
-        $token = config('services.optigate_portal.token');
+        // Fetch departments from database
         try {
-            $response = Http::withToken($token)
-                ->timeout(10)
-                ->get($url);
-            if ($response->successful()) {
-                $departments = $response->json('data') ?? $response->json();
-            } else {
-                Log::error('Gagal mengambil data department dari API Portal: ' . $response->body());
-            }
+            $departments = Department::orderBy('nama_department')->get(['id_department', 'nama_department', 'kode_department']);
         } catch (\Throwable $th) {
-            Log::error('Exception API Department: ' . $th->getMessage());
+            Log::error('Exception fetching departments: '.$th->getMessage());
         }
 
         // Fetch tenants
         try {
             $tenants = Tenants::orderBy('name')->get(['id', 'name']);
         } catch (\Throwable $th) {
-            Log::error('Exception fetching tenants: ' . $th->getMessage());
+            Log::error('Exception fetching tenants: '.$th->getMessage());
         }
 
         return Inertia::render('WorkOrder/Edit', [
-            'workOrder' => $workOrder,
+            'workOrder' => $workOrder->load('departmentData'),
             'departments' => $departments,
             'tenants' => $tenants,
         ]);
@@ -215,20 +243,32 @@ class WorkOrderController extends Controller
             'rincian_pekerjaan' => 'required|string|max:255',
             'lokasi' => 'nullable|string|max:255',
             'location_type' => 'required|in:location,tenant',
-            'tenant_id' => 'nullable|integer',
+            'tenant_id' => 'nullable|string',
             'tenant_name' => 'nullable|string|max:255',
             'prioritas' => 'required|string|max:50',
             'priority_type' => 'required|in:normal,urgent',
             'urgent_sub_type' => 'nullable|in:by_accident,by_owner',
-            'budget' => 'nullable|numeric|min:0',
             'keterangan' => 'nullable|string',
             'department' => 'nullable|string|max:255',
-            'pic' => 'nullable|string|max:255',
             'incident_photos' => 'nullable|array',
             'incident_photos.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'remove_photos' => 'nullable|array',
             'remove_photos.*' => 'nullable|string',
         ]);
+
+        // Map department to department_tujuan
+        $validated['department_tujuan'] = $validated['department'] ?? $workOrder->department_tujuan;
+
+        // Handle location mapping
+        if ($request->location_type === 'tenant') {
+            $validated['lokasi'] = $request->tenant_name;
+            $validated['tenant_id'] = $request->tenant_id;
+        } else {
+            $validated['lokasi'] = $request->lokasi;
+        }
+
+        // Remove fields not in database
+        unset($validated['department'], $validated['location_type'], $validated['tenant_name']);
 
         // Handle photo removal
         $existingPhotos = $workOrder->incident_photos ?? [];
@@ -259,7 +299,7 @@ class WorkOrderController extends Controller
 
         $workOrder->update($validated);
 
-        return redirect()->route('work-orders.index')
+        return redirect()->route('work-orders.show', $workOrder->id_work_order)
             ->with('flash', [
                 'message' => 'Work order updated successfully',
                 'type' => 'success',
@@ -296,12 +336,8 @@ class WorkOrderController extends Controller
      */
     public function hodReview(WorkOrder $workOrder)
     {
-        // Authorization: Check if user is HOD or has management role
-        // For now, allow all authenticated users (implement proper auth later)
-
-        // Fetch employees from API or database
         $employees = [];
-        $url = config('services.optigate_portal.url') . '/api/employees';
+        $url = config('services.optigate_portal.url').'/api/employees';
         $token = config('services.optigate_portal.token');
         try {
             $response = Http::withToken($token)
@@ -310,14 +346,14 @@ class WorkOrderController extends Controller
             if ($response->successful()) {
                 $employees = $response->json('data') ?? $response->json();
             } else {
-                Log::error('Gagal mengambil data employee dari API Portal: ' . $response->body());
+                Log::error('Gagal mengambil data employee dari API Portal: '.$response->body());
             }
         } catch (\Throwable $th) {
-            Log::error('Exception API Employee: ' . $th->getMessage());
+            Log::error('Exception API Employee: '.$th->getMessage());
         }
 
         return Inertia::render('WorkOrder/HodReview', [
-            'workOrder' => $workOrder->load([]),
+            'workOrder' => $workOrder,
             'employees' => $employees,
         ]);
     }
@@ -348,28 +384,16 @@ class WorkOrderController extends Controller
         $workOrder->update([
             'hod_action' => $validated['hod_action'],
             'scheduled_date' => $validated['scheduled_date'] ?? null,
+            'status_tiket' => 'Pending HOD',
             'status_pekerjaan' => $validated['hod_action'] === 'execute_immediately' ? 'hod_approved' : 'scheduled',
             'keterangan' => $validated['action_notes'] ?? $workOrder->keterangan,
             'assigned_employees' => $validated['assigned_employees'] ?? [],
             'personnel_count' => $validated['personnel_count'] ?? 0,
         ]);
 
-        // Create WorkData record automatically
-        $workData = WorkData::create([
-            'no_kerja' => $workOrder->no_work_order,
-            'tanggal_work_data' => now(),
-            'deskripsi' => $workOrder->rincian_pekerjaan,
-            'status_pekerjaan' => $validated['hod_action'] === 'execute_immediately' ? 'in_progress' : 'scheduled',
-            'nama_tenant' => $workOrder->tenant_name,
-            'work_department' => $workOrder->department,
-            'kode_inventory' => null,
-            'create_id_user' => Auth::id(),
-            'status_hapus' => '0',
-        ]);
-
-        return redirect()->route('work-data.show', $workData->id_work_data)
+        return redirect()->route('work-orders.show', $workOrder->id_work_order)
             ->with('flash', [
-                'message' => 'Work order approved and work data created successfully',
+                'message' => 'Work order approved successfully',
                 'type' => 'success',
             ]);
     }
@@ -379,9 +403,8 @@ class WorkOrderController extends Controller
      */
     public function assign(WorkOrder $workOrder)
     {
-        // Fetch employees from API or database
         $employees = [];
-        $url = config('services.optigate_portal.url') . '/api/employees';
+        $url = config('services.optigate_portal.url').'/api/employees';
         $token = config('services.optigate_portal.token');
         try {
             $response = Http::withToken($token)
@@ -390,14 +413,14 @@ class WorkOrderController extends Controller
             if ($response->successful()) {
                 $employees = $response->json('data') ?? $response->json();
             } else {
-                Log::error('Gagal mengambil data employee dari API Portal: ' . $response->body());
+                Log::error('Gagal mengambil data employee dari API Portal: '.$response->body());
             }
         } catch (\Throwable $th) {
-            Log::error('Exception API Employee: ' . $th->getMessage());
+            Log::error('Exception API Employee: '.$th->getMessage());
         }
 
         return Inertia::render('WorkOrder/Assign', [
-            'workOrder' => $workOrder->load([]),
+            'workOrder' => $workOrder,
             'employees' => $employees,
         ]);
     }
@@ -422,7 +445,7 @@ class WorkOrderController extends Controller
             'keterangan' => $validated['assignment_notes'] ?? $workOrder->keterangan,
         ]);
 
-        return redirect()->route('work-orders.index')
+        return redirect()->route('work-orders.show', $workOrder->id_work_order)
             ->with('flash', [
                 'message' => 'Employees assigned successfully',
                 'type' => 'success',
@@ -445,7 +468,7 @@ class WorkOrderController extends Controller
             'keterangan' => $validated['completion_notes'] ?? $workOrder->keterangan,
         ]);
 
-        return redirect()->route('work-orders.index')
+        return redirect()->route('work-orders.show', $workOrder->id_work_order)
             ->with('flash', [
                 'message' => 'Work results submitted successfully',
                 'type' => 'success',
@@ -471,15 +494,17 @@ class WorkOrderController extends Controller
         // Update status based on verification result
         if ($validated['verification_status'] === 'pass') {
             $updateData['status_pekerjaan'] = 'completed';
+            $updateData['status_tiket'] = 'Executed';
         } elseif ($validated['verification_status'] === 'needs_revision') {
             $updateData['status_pekerjaan'] = 'in_progress';
         } else {
             $updateData['status_pekerjaan'] = 'rejected';
+            $updateData['status_tiket'] = 'Rejected';
         }
 
         $workOrder->update($updateData);
 
-        return redirect()->route('work-orders.index')
+        return redirect()->route('work-orders.show', $workOrder->id_work_order)
             ->with('flash', [
                 'message' => 'Work order verification completed',
                 'type' => 'success',
@@ -488,26 +513,10 @@ class WorkOrderController extends Controller
 
     public function show($id)
     {
-        $workOrder = WorkOrder::findOrFail($id);
-
-        // Fetch employees if needed for display
-        $employees = [];
-        $url = config('services.optigate_portal.url') . '/api/employees';
-        $token = config('services.optigate_portal.token');
-        try {
-            $response = Http::withToken($token)
-                ->timeout(10)
-                ->get($url);
-            if ($response->successful()) {
-                $employees = $response->json('data') ?? $response->json();
-            }
-        } catch (\Throwable $th) {
-            Log::error('Exception API Employee: ' . $th->getMessage());
-        }
+        $workOrder = WorkOrder::with('departmentData')->findOrFail($id);
 
         return Inertia::render('WorkOrder/Show', [
             'workOrder' => $workOrder,
-            'employees' => $employees,
         ]);
     }
 }

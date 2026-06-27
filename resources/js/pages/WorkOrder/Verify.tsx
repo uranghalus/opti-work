@@ -14,12 +14,12 @@ type WorkOrder = {
     id_work_order: number;
     no_work_order: string;
     rincian_pekerjaan: string;
-    department: string | null;
+    department_tujuan: string | null;
     priority_type: string;
     status_pekerjaan: string;
     completion_results: string | null;
     assigned_employees: Array<{ id: number; name: string }> | null;
-    user: string;
+    user_requester: string;
 };
 
 type PageProps = {
@@ -81,13 +81,13 @@ export default function Verify({ workOrder }: PageProps) {
                         <div>
                             <Label className="text-xs text-neutral-500">Department</Label>
                             <p className="mt-1 text-sm font-medium text-neutral-900 dark:text-white">
-                                {workOrder.department || 'N/A'}
+                                {workOrder.department_tujuan || 'N/A'}
                             </p>
                         </div>
                         <div>
                             <Label className="text-xs text-neutral-500">Reported By</Label>
                             <p className="mt-1 text-sm text-neutral-900 dark:text-white">
-                                {workOrder.user}
+                                {workOrder.user_requester}
                             </p>
                         </div>
                         <div>

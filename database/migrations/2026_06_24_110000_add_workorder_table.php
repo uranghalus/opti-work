@@ -19,12 +19,18 @@ return new class extends Migration
 
             // Data Permintaan
             $table->text('rincian_pekerjaan')->nullable();
-            $table->string('lokasi')->nullable();
-            $table->string('status_pekerjaan')->nullable();
-            $table->string('prioritas')->default('Normal'); // Normal, Urgent - Accident, Urgent - Owner
-            $table->string('level')->nullable(); // Menunjuk ke id_karyawan
-            $table->decimal('budget', 15, 2)->nullable();
-            $table->text('keterangan')->nullable();
+            $table->string('department_tujuan')->nullable();
+
+            $table->string('lokasi')->nullable(); // Untuk teks bebas atau nama tenant
+            $table->string('tenant_id')->nullable();
+
+            $table->string('priority_type')->default('normal');
+            $table->string('urgent_sub_type')->nullable();
+            $table->string('prioritas')->default('medium'); // Normal, Urgent - Accident, Urgent - Owner
+
+            // Status Tiket: 'Pending HOD', 'Executed', 'Rejected'
+            $table->string('status_tiket')->default('Pending HOD');
+            $table->string('user_requester')->nullable();
 
             $table->unsignedBigInteger('modified_user')->nullable();
             $table->timestamps();

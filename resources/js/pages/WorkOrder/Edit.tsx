@@ -1,8 +1,7 @@
-import { Form, Head, Link, router } from '@inertiajs/react';
+import { Form, Head, Link } from '@inertiajs/react';
 import {
     ArrowLeft,
     ClipboardList,
-    DollarSign,
     FileText,
     AlertCircle,
     AlertTriangle,
@@ -11,28 +10,19 @@ import {
     Camera,
     X,
     Image,
-    Trash2,
 } from 'lucide-react';
 import { useState } from 'react';
 
+import Combobox from '@/components/combobox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { TenantSearchableSelect } from '@/components/workflow/TenantSearchableSelect';
 import { index as workOrdersIndex } from '@/routes/work-orders';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 type Department = {
-    id: number;
-    name: string;
-    code?: string;
+    id_department: string;
+    nama_department: string;
+    kode_department?: string;
 };
 
 type Tenant = {
@@ -44,18 +34,14 @@ type WorkOrder = {
     id_work_order: number;
     no_work_order: string;
     rincian_pekerjaan: string | null;
+    department_tujuan: string | null;
     lokasi: string | null;
-    location_type: string | null;
-    tenant_id: number | null;
-    tenant_name: string | null;
-    prioritas: string | null;
+    tenant_id: string | null;
     priority_type: string | null;
     urgent_sub_type: string | null;
-    budget: string | null;
+    prioritas: string | null;
     keterangan: string | null;
-    department: string | null;
-    pic: string | null;
-    incident_photos: string[] | null;
+    incident_photos_urls: string[];
 };
 
 type PageProps = {
@@ -65,14 +51,15 @@ type PageProps = {
 };
 
 export default function WorkOrderEdit({ workOrder, departments, tenants }: PageProps) {
-    const [selectedDepartment, setSelectedDepartment] = useState(workOrder.department || '');
-    const [locationType, setLocationType] = useState(workOrder.location_type || 'location');
-    const [selectedTenant, setSelectedTenant] = useState(workOrder.tenant_id?.toString() || '');
+    const [selectedDepartment, setSelectedDepartment] = useState(workOrder.department_tujuan || '');
+    const [locationType, setLocationType] = useState(workOrder.tenant_id ? 'tenant' : 'location');
+    const [selectedTenant, setSelectedTenant] = useState(workOrder.tenant_id || '');
     const [priorityType, setPriorityType] = useState(workOrder.priority_type || 'normal');
     const [urgentSubType, setUrgentSubType] = useState(workOrder.urgent_sub_type || '');
+    const [priorityLevel, setPriorityLevel] = useState(workOrder.prioritas || 'medium');
     const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
     const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
-    const [existingPhotos, setExistingPhotos] = useState<string[]>(workOrder.incident_photos || []);
+    const [existingPhotos, setExistingPhotos] = useState<string[]>(workOrder.incident_photos_urls || []);
     const [photosToRemove, setPhotosToRemove] = useState<string[]>([]);
 
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,44 +101,38 @@ export default function WorkOrderEdit({ workOrder, departments, tenants }: PageP
         <>
             <Head title={`Edit - ${workOrder.no_work_order}`} />
 
-            <div className="mx-auto w-full max-w-3xl space-y-6">
+            <div className="mx-auto w-full max-w-3xl space-y-8">
                 {/* Back Link */}
-                <div className="flex items-center justify-between">
-                    <Link
-                        href={`/work-orders/${workOrder.id_work_order}`}
-                        className="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-500 transition-colors hover:text-[#0071b7] dark:text-neutral-400 dark:hover:text-[#0093dd]"
-                    >
+                <Link
+                    href={`/work-orders/${workOrder.id_work_order}`}
+                    className="group inline-flex items-center gap-2 text-sm font-medium text-neutral-500 transition-all hover:text-[#0071b7] hover:translate-x-[-4px] dark:text-neutral-400 dark:hover:text-[#0093dd]"
+                >
+                    <div className="flex size-7 items-center justify-center rounded-lg bg-neutral-100 transition-colors group-hover:bg-[#0071b7]/10 dark:bg-neutral-800 dark:group-hover:bg-[#0093dd]/10">
                         <ArrowLeft className="size-4" />
-                        Back to Details
-                    </Link>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            if (confirm('Are you sure you want to delete this work order?')) {
-                                router.delete(`/work-orders/${workOrder.id_work_order}`, {
-                                    preserveScroll: true,
-                                });
-                            }
-                        }}
-                        className="inline-flex items-center gap-1.5 text-sm font-medium text-red-600 transition-colors hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                    >
-                        <Trash2 className="size-4" />
-                        Delete
-                    </button>
-                </div>
+                    </div>
+                    <span>Back to Details</span>
+                </Link>
 
                 {/* Header */}
-                <div className="flex items-start justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
-                            Edit Work Order
-                        </h1>
-                        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                            Update work order details
-                        </p>
-                    </div>
-                    <div className="flex size-12 items-center justify-center rounded-xl bg-linear-to-br from-[#0071b7] to-[#0093dd] shadow-md ring-4 ring-[#0071b7]/10">
-                        <ClipboardList className="size-6 text-white" />
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0071b7] via-[#0089cc] to-[#0093dd] p-8 shadow-lg">
+                    <div className="absolute top-0 right-0 -mt-8 -mr-8 size-32 rounded-full bg-white/10 blur-2xl" />
+                    <div className="absolute bottom-0 left-0 -mb-12 -ml-12 size-40 rounded-full bg-white/5 blur-3xl" />
+                    <div className="relative flex items-start justify-between">
+                        <div>
+                            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                                <ClipboardList className="size-3.5" />
+                                {workOrder.no_work_order}
+                            </div>
+                            <h1 className="text-3xl font-bold tracking-tight text-white">
+                                Edit Work Order
+                            </h1>
+                            <p className="mt-2 text-sm text-white/90">
+                                Update the work order details below
+                            </p>
+                        </div>
+                        <div className="flex size-16 items-center justify-center rounded-2xl bg-white/20 shadow-lg backdrop-blur-sm ring-4 ring-white/10">
+                            <ClipboardList className="size-8 text-white" />
+                        </div>
                     </div>
                 </div>
 
@@ -176,6 +157,26 @@ export default function WorkOrderEdit({ workOrder, departments, tenants }: PageP
                                 </div>
                                 <div className="space-y-5">
                                     <div className="grid gap-2">
+                                        <Label htmlFor="department_tujuan">
+                                            Departemen Tujuan
+                                            <span className="text-red-500">*</span>
+                                        </Label>
+                                        <Combobox
+                                            options={departments.map((dept) => ({
+                                                label: dept.nama_department,
+                                                value: dept.nama_department,
+                                            }))}
+                                            value={selectedDepartment}
+                                            onChange={(value) => setSelectedDepartment(value)}
+                                            placeholder="Select department"
+                                        />
+                                        <input
+                                            type="hidden"
+                                            name="department"
+                                            value={selectedDepartment}
+                                        />
+                                    </div>
+                                    <div className="grid gap-2">
                                         <Label htmlFor="rincian_pekerjaan">
                                             Work Description{' '}
                                             <span className="text-red-500">*</span>
@@ -197,50 +198,106 @@ export default function WorkOrderEdit({ workOrder, departments, tenants }: PageP
 
                                     {/* Location Type Selection */}
                                     <div className="grid gap-3">
-                                        <Label>Location Type</Label>
-                                        <RadioGroup
-                                            value={locationType}
-                                            onValueChange={setLocationType}
-                                            className="flex gap-4"
-                                        >
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="location" id="location" />
-                                                <Label htmlFor="location" className="cursor-pointer">
-                                                    <MapPin className="mr-1 inline size-4" />
-                                                    Location
-                                                </Label>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="tenant" id="tenant" />
-                                                <Label htmlFor="tenant" className="cursor-pointer">
-                                                    <Building2 className="mr-1 inline size-4" />
-                                                    Tenant
-                                                </Label>
-                                            </div>
-                                        </RadioGroup>
+                                        <Label>Location Type <span className="text-red-500">*</span></Label>
 
-                                        {locationType === 'location' ? (
-                                            <Input
-                                                id="lokasi"
-                                                name="lokasi"
-                                                defaultValue={workOrder.lokasi || ''}
-                                                placeholder="Work location or site"
+                                        {/* Modern Segmented Control */}
+                                        <div className="relative flex rounded-lg border border-neutral-200 bg-neutral-100 p-1 dark:border-neutral-700 dark:bg-neutral-800">
+                                            {/* Sliding Indicator */}
+                                            <div
+                                                className="absolute top-1 bottom-1 rounded-md bg-white shadow-sm transition-all duration-300 ease-in-out dark:bg-neutral-900"
+                                                style={{
+                                                    left: locationType === 'location' ? '4px' : 'calc(50% + 2px)',
+                                                    width: 'calc(50% - 6px)',
+                                                }}
                                             />
-                                        ) : (
-                                            <TenantSearchableSelect
-                                                tenants={tenants}
-                                                value={selectedTenant}
-                                                onChange={setSelectedTenant}
-                                                placeholder="Search and select tenant..."
-                                                error={errors.tenant_id as string}
-                                            />
-                                        )}
+
+                                            {/* Location Button */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setLocationType('location')}
+                                                className="relative z-10 flex-1 flex items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-colors duration-200"
+                                            >
+                                                <MapPin className={`size-4 transition-colors ${locationType === 'location'
+                                                    ? 'text-[#0071b7] dark:text-[#0093dd]'
+                                                    : 'text-neutral-500 dark:text-neutral-400'
+                                                    }`} />
+                                                <span className={
+                                                    locationType === 'location'
+                                                        ? 'text-neutral-900 dark:text-white'
+                                                        : 'text-neutral-600 dark:text-neutral-400'
+                                                }>
+                                                    Location
+                                                </span>
+                                            </button>
+
+                                            {/* Tenant Button */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setLocationType('tenant')}
+                                                className="relative z-10 flex-1 flex items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-colors duration-200"
+                                            >
+                                                <Building2 className={`size-4 transition-colors ${locationType === 'tenant'
+                                                    ? 'text-[#0071b7] dark:text-[#0093dd]'
+                                                    : 'text-neutral-500 dark:text-neutral-400'
+                                                    }`} />
+                                                <span className={
+                                                    locationType === 'tenant'
+                                                        ? 'text-neutral-900 dark:text-white'
+                                                        : 'text-neutral-600 dark:text-neutral-400'
+                                                }>
+                                                    Tenant
+                                                </span>
+                                            </button>
+                                        </div>
+
+                                        {/* Conditional Input with Animation */}
+                                        <div className="relative overflow-hidden">
+                                            <div
+                                                className="transition-all duration-300 ease-in-out"
+                                                style={{
+                                                    opacity: locationType === 'location' ? 1 : 0,
+                                                    transform: locationType === 'location' ? 'translateY(0)' : 'translateY(-8px)',
+                                                    position: locationType === 'location' ? 'relative' : 'absolute',
+                                                    pointerEvents: locationType === 'location' ? 'auto' : 'none',
+                                                }}
+                                            >
+                                                <Input
+                                                    id="lokasi"
+                                                    name="lokasi"
+                                                    defaultValue={workOrder.lokasi || ''}
+                                                    placeholder="Enter work location or site address"
+                                                    className="text-base"
+                                                />
+                                            </div>
+
+                                            <div
+                                                className="transition-all duration-300 ease-in-out"
+                                                style={{
+                                                    opacity: locationType === 'tenant' ? 1 : 0,
+                                                    transform: locationType === 'tenant' ? 'translateY(0)' : 'translateY(-8px)',
+                                                    position: locationType === 'tenant' ? 'relative' : 'absolute',
+                                                    pointerEvents: locationType === 'tenant' ? 'auto' : 'none',
+                                                }}
+                                            >
+                                                <Combobox
+                                                    options={tenants.map((tenant) => ({
+                                                        label: tenant.name,
+                                                        value: tenant.id.toString(),
+                                                    }))}
+                                                    value={selectedTenant}
+                                                    onChange={(value) => setSelectedTenant(value)}
+                                                    placeholder="Search and select tenant..."
+                                                />
+                                            </div>
+                                        </div>
+
                                         {errors.lokasi && (
                                             <p className="flex items-center gap-1 text-xs text-red-500">
                                                 <AlertCircle className="size-3" />
                                                 {errors.lokasi}
                                             </p>
                                         )}
+
                                         <input
                                             type="hidden"
                                             name="location_type"
@@ -266,67 +323,114 @@ export default function WorkOrderEdit({ workOrder, departments, tenants }: PageP
 
                             {/* Priority & Classification */}
                             <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                                <div className="mb-4 flex items-center gap-2">
-                                    <AlertTriangle className="size-5 text-[#0071b7] dark:text-[#0093dd]" />
-                                    <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                                        Priority & Classification
-                                    </h2>
+                                <div className="mb-5 flex items-center gap-2">
+                                    <div className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 shadow-sm">
+                                        <AlertTriangle className="size-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                            Priority & Classification
+                                        </h2>
+                                        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                            Set urgency and priority levels
+                                        </p>
+                                    </div>
                                 </div>
+
                                 <div className="space-y-5">
-                                    {/* Priority Type */}
-                                    <div className="grid gap-2">
+                                    {/* Priority Type - Modern Segmented Control */}
+                                    <div className="grid gap-3">
                                         <Label>
                                             Priority Type{' '}
                                             <span className="text-red-500">*</span>
                                         </Label>
-                                        <RadioGroup
-                                            value={priorityType}
-                                            onValueChange={(value: string) => {
-                                                setPriorityType(value);
 
-                                                if (value === 'normal') {
+                                        {/* Modern Segmented Control with Sliding Indicator */}
+                                        <div className="relative flex rounded-lg border border-neutral-200 bg-neutral-100 p-1 dark:border-neutral-700 dark:bg-neutral-800">
+                                            {/* Sliding Indicator */}
+                                            <div
+                                                className="absolute top-1 bottom-1 rounded-md bg-white shadow-md transition-all duration-300 ease-in-out dark:bg-neutral-900"
+                                                style={{
+                                                    left: priorityType === 'normal' ? '4px' : 'calc(50% + 2px)',
+                                                    width: 'calc(50% - 6px)',
+                                                }}
+                                            />
+
+                                            {/* Normal Button */}
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setPriorityType('normal');
                                                     setUrgentSubType('');
-                                                }
-                                            }}
-                                            className="flex gap-4"
-                                        >
-                                            <div className="flex-1">
-                                                <div
-                                                    className={`cursor-pointer rounded-lg border-2 p-3 transition-all ${priorityType === 'normal'
-                                                        ? 'border-[#0071b7] bg-[#0071b7]/5 dark:border-[#0093dd] dark:bg-[#0093dd]/5'
-                                                        : 'border-neutral-200 dark:border-neutral-700'
-                                                        }`}
-                                                    onClick={() => setPriorityType('normal')}
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="size-3 rounded-full bg-emerald-500" />
-                                                        <span className="font-medium">Normal</span>
-                                                    </div>
-                                                    <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                                                        Standard processing
-                                                    </p>
+                                                }}
+                                                className="relative z-10 flex-1 flex items-center justify-center gap-2 rounded-md py-3 text-sm font-medium transition-all duration-200"
+                                            >
+                                                <div className={`flex items-center gap-2`}>
+                                                    <div className={`size-3 rounded-full transition-all ${priorityType === 'normal'
+                                                        ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50'
+                                                        : 'bg-neutral-400 dark:bg-neutral-600'
+                                                        }`} />
+                                                    <span className={
+                                                        priorityType === 'normal'
+                                                            ? 'text-emerald-700 dark:text-emerald-400'
+                                                            : 'text-neutral-600 dark:text-neutral-400'
+                                                    }>
+                                                        Normal
+                                                    </span>
                                                 </div>
-                                            </div>
-                                            <div className="flex-1">
-                                                <div
-                                                    className={`cursor-pointer rounded-lg border-2 p-3 transition-all ${priorityType === 'urgent'
-                                                        ? 'border-red-500 bg-red-500/5 dark:border-red-400 dark:bg-red-400/5'
-                                                        : 'border-neutral-200 dark:border-neutral-700'
-                                                        }`}
-                                                    onClick={() => setPriorityType('urgent')}
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="size-3 rounded-full bg-red-500" />
-                                                        <span className="font-medium text-red-600 dark:text-red-400">
-                                                            Urgent
-                                                        </span>
-                                                    </div>
-                                                    <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                                                        Requires immediate attention
-                                                    </p>
+                                            </button>
+
+                                            {/* Urgent Button */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setPriorityType('urgent')}
+                                                className="relative z-10 flex-1 flex items-center justify-center gap-2 rounded-md py-3 text-sm font-medium transition-all duration-200"
+                                            >
+                                                <div className={`flex items-center gap-2`}>
+                                                    <div className={`size-3 rounded-full transition-all ${priorityType === 'urgent'
+                                                        ? 'bg-red-500 shadow-sm shadow-red-500/50 animate-pulse'
+                                                        : 'bg-neutral-400 dark:bg-neutral-600'
+                                                        }`} />
+                                                    <span className={
+                                                        priorityType === 'urgent'
+                                                            ? 'text-red-700 dark:text-red-400'
+                                                            : 'text-neutral-600 dark:text-neutral-400'
+                                                    }>
+                                                        Urgent
+                                                    </span>
                                                 </div>
-                                            </div>
-                                        </RadioGroup>
+                                            </button>
+                                        </div>
+
+                                        {/* Priority Description */}
+                                        <div className="flex items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-700 dark:bg-neutral-800/50">
+                                            {priorityType === 'normal' ? (
+                                                <>
+                                                    <div className="mt-0.5 size-5 rounded-full bg-emerald-100 dark:bg-emerald-500/20" />
+                                                    <div className="flex-1">
+                                                        <p className="text-xs font-medium text-emerald-800 dark:text-emerald-300">
+                                                            Standard Processing
+                                                        </p>
+                                                        <p className="mt-0.5 text-xs text-neutral-600 dark:text-neutral-400">
+                                                            Work order will be processed according to normal schedule and workflow
+                                                        </p>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="mt-0.5 size-5 rounded-full bg-red-100 dark:bg-red-500/20" />
+                                                    <div className="flex-1">
+                                                        <p className="text-xs font-medium text-red-800 dark:text-red-300">
+                                                            Immediate Attention Required
+                                                        </p>
+                                                        <p className="mt-0.5 text-xs text-neutral-600 dark:text-neutral-400">
+                                                            This work order requires urgent handling and priority scheduling
+                                                        </p>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+
                                         <input
                                             type="hidden"
                                             name="priority_type"
@@ -340,87 +444,217 @@ export default function WorkOrderEdit({ workOrder, departments, tenants }: PageP
                                         )}
                                     </div>
 
-                                    {/* Urgent Sub-Type */}
-                                    {priorityType === 'urgent' && (
-                                        <div className="grid gap-2">
-                                            <Label>
-                                                Urgent Type{' '}
-                                                <span className="text-red-500">*</span>
-                                            </Label>
-                                            <Select
-                                                value={urgentSubType}
-                                                onValueChange={setUrgentSubType}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select urgent type" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="by_accident">
-                                                        <div className="flex items-center gap-2">
-                                                            <AlertTriangle className="size-4 text-red-500" />
-                                                            <span>Urgent By Accident</span>
-                                                        </div>
-                                                    </SelectItem>
-                                                    <SelectItem value="by_owner">
-                                                        <div className="flex items-center gap-2">
-                                                            <AlertCircle className="size-4 text-amber-500" />
-                                                            <span>Urgent Request By Owner</span>
-                                                        </div>
-                                                    </SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <input
-                                                type="hidden"
-                                                name="urgent_sub_type"
-                                                value={urgentSubType}
-                                            />
-                                            {urgentSubType === 'by_accident' && (
-                                                <div className="flex items-start gap-2 rounded-md bg-amber-50 p-3 dark:bg-amber-500/10">
-                                                    <AlertTriangle className="mt-0.5 size-4 text-amber-600 dark:text-amber-400" />
-                                                    <p className="text-xs text-amber-800 dark:text-amber-300">
-                                                        <strong>Note:</strong> HOD must execute this work immediately. Scheduling is not allowed.
-                                                    </p>
-                                                </div>
-                                            )}
-                                            {errors.urgent_sub_type && (
-                                                <p className="flex items-center gap-1 text-xs text-red-500">
-                                                    <AlertCircle className="size-3" />
-                                                    {errors.urgent_sub_type}
-                                                </p>
-                                            )}
-                                        </div>
-                                    )}
+                                    {/* Urgent Sub-Type - Animated Reveal */}
+                                    <div
+                                        className="overflow-hidden transition-all duration-300 ease-in-out"
+                                        style={{
+                                            maxHeight: priorityType === 'urgent' ? '500px' : '0',
+                                            opacity: priorityType === 'urgent' ? 1 : 0,
+                                        }}
+                                    >
+                                        {priorityType === 'urgent' && (
+                                            <div className="grid gap-3 pt-2">
+                                                <Label>
+                                                    Urgent Type{' '}
+                                                    <span className="text-red-500">*</span>
+                                                </Label>
 
-                                    {/* Legacy Prioritas Field */}
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="prioritas">
-                                            Priority Level
+                                                {/* Urgent Type Cards */}
+                                                <div className="grid gap-3 sm:grid-cols-2">
+                                                    {/* By Accident Card */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setUrgentSubType('by_accident')}
+                                                        className={`relative overflow-hidden rounded-lg border-2 p-4 text-left transition-all duration-200 ${urgentSubType === 'by_accident'
+                                                            ? 'border-red-500 bg-red-50 dark:border-red-400 dark:bg-red-500/10'
+                                                            : 'border-neutral-200 bg-white hover:border-red-300 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-red-500/50'
+                                                            }`}
+                                                    >
+                                                        {urgentSubType === 'by_accident' && (
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent dark:from-red-500/10" />
+                                                        )}
+                                                        <div className="relative">
+                                                            <div className="mb-2 flex items-center gap-2">
+                                                                <div className={`flex size-8 items-center justify-center rounded-lg ${urgentSubType === 'by_accident'
+                                                                    ? 'bg-red-500 text-white'
+                                                                    : 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400'
+                                                                    }`}>
+                                                                    <AlertTriangle className="size-4" />
+                                                                </div>
+                                                                <span className={`text-sm font-semibold ${urgentSubType === 'by_accident'
+                                                                    ? 'text-red-900 dark:text-red-100'
+                                                                    : 'text-neutral-900 dark:text-white'
+                                                                    }`}>
+                                                                    By Accident
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                                                                Emergency situation requiring immediate action
+                                                            </p>
+                                                        </div>
+                                                    </button>
+
+                                                    {/* By Owner Card */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setUrgentSubType('by_owner')}
+                                                        className={`relative overflow-hidden rounded-lg border-2 p-4 text-left transition-all duration-200 ${urgentSubType === 'by_owner'
+                                                            ? 'border-amber-500 bg-amber-50 dark:border-amber-400 dark:bg-amber-500/10'
+                                                            : 'border-neutral-200 bg-white hover:border-amber-300 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-amber-500/50'
+                                                            }`}
+                                                    >
+                                                        {urgentSubType === 'by_owner' && (
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent dark:from-amber-500/10" />
+                                                        )}
+                                                        <div className="relative">
+                                                            <div className="mb-2 flex items-center gap-2">
+                                                                <div className={`flex size-8 items-center justify-center rounded-lg ${urgentSubType === 'by_owner'
+                                                                    ? 'bg-amber-500 text-white'
+                                                                    : 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
+                                                                    }`}>
+                                                                    <AlertCircle className="size-4" />
+                                                                </div>
+                                                                <span className={`text-sm font-semibold ${urgentSubType === 'by_owner'
+                                                                    ? 'text-amber-900 dark:text-amber-100'
+                                                                    : 'text-neutral-900 dark:text-white'
+                                                                    }`}>
+                                                                    By Owner
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                                                                Urgent request from property owner
+                                                            </p>
+                                                        </div>
+                                                    </button>
+                                                </div>
+
+                                                <input
+                                                    type="hidden"
+                                                    name="urgent_sub_type"
+                                                    value={urgentSubType}
+                                                />
+
+                                                {/* Warning Notice for By Accident */}
+                                                {urgentSubType === 'by_accident' && (
+                                                    <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-500/30 dark:bg-amber-500/10">
+                                                        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-amber-200 dark:bg-amber-500/20">
+                                                            <AlertTriangle className="size-4 text-amber-700 dark:text-amber-400" />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+                                                                Immediate Execution Required
+                                                            </p>
+                                                            <p className="mt-1 text-xs text-amber-800 dark:text-amber-300">
+                                                                HOD must execute this work immediately. Scheduling is not allowed for emergency situations.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {errors.urgent_sub_type && (
+                                                    <p className="flex items-center gap-1 text-xs text-red-500">
+                                                        <AlertCircle className="size-3" />
+                                                        {errors.urgent_sub_type}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Priority Level - Radio Button Cards */}
+                                    <div className="grid gap-3">
+                                        <Label>
+                                            Priority Level{' '}
+                                            <span className="text-red-500">*</span>
                                         </Label>
-                                        <Select name="prioritas" defaultValue={workOrder.prioritas || 'medium'}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select priority level" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="low">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="size-2 rounded-full bg-emerald-500" />
+
+                                        {/* Priority Level Radio Cards */}
+                                        <div className="grid gap-3 sm:grid-cols-3">
+                                            {/* Low Priority */}
+                                            <label
+                                                className={`relative cursor-pointer overflow-hidden rounded-xl border-2 p-4 transition-all duration-200 ${priorityLevel === 'low'
+                                                    ? 'border-emerald-500 bg-emerald-50 shadow-md dark:border-emerald-400 dark:bg-emerald-500/10'
+                                                    : 'border-neutral-200 bg-white hover:border-emerald-300 hover:shadow-sm dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-emerald-500/50'
+                                                    }`}
+                                                onClick={() => setPriorityLevel('low')}
+                                            >
+                                                <input type="radio" name="prioritas" value="low" checked={priorityLevel === 'low'} onChange={() => setPriorityLevel('low')} className="hidden" />
+                                                {priorityLevel === 'low' && (
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent dark:from-emerald-500/10" />
+                                                )}
+                                                <div className="relative">
+                                                    <div className="mb-3 flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm">
+                                                        <span className="text-lg font-bold text-white">L</span>
+                                                    </div>
+                                                    <p className="text-sm font-semibold text-neutral-900 dark:text-white">
                                                         Low
+                                                    </p>
+                                                    <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-400">
+                                                        Flexible scheduling
+                                                    </p>
+                                                    <div className="mt-2 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
+                                                        7-14 days
                                                     </div>
-                                                </SelectItem>
-                                                <SelectItem value="medium">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="size-2 rounded-full bg-amber-500" />
+                                                </div>
+                                            </label>
+
+                                            {/* Medium Priority */}
+                                            <label
+                                                className={`relative cursor-pointer overflow-hidden rounded-xl border-2 p-4 transition-all duration-200 ${priorityLevel === 'medium'
+                                                    ? 'border-amber-500 bg-amber-50 shadow-md dark:border-amber-400 dark:bg-amber-500/10'
+                                                    : 'border-neutral-200 bg-white hover:border-amber-300 hover:shadow-sm dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-amber-500/50'
+                                                    }`}
+                                                onClick={() => setPriorityLevel('medium')}
+                                            >
+                                                <input type="radio" name="prioritas" value="medium" checked={priorityLevel === 'medium'} onChange={() => setPriorityLevel('medium')} className="hidden" />
+                                                {priorityLevel === 'medium' && (
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent dark:from-amber-500/10" />
+                                                )}
+                                                <div className="relative">
+                                                    <div className="mb-3 flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm">
+                                                        <span className="text-lg font-bold text-white">M</span>
+                                                    </div>
+                                                    <p className="text-sm font-semibold text-neutral-900 dark:text-white">
                                                         Medium
+                                                    </p>
+                                                    <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-400">
+                                                        Standard scheduling
+                                                    </p>
+                                                    <div className="mt-2 rounded-full bg-amber-100 px-2 py-1 text-[10px] font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
+                                                        3-7 days
                                                     </div>
-                                                </SelectItem>
-                                                <SelectItem value="high">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="size-2 rounded-full bg-red-500" />
+                                                </div>
+                                            </label>
+
+                                            {/* High Priority */}
+                                            <label
+                                                className={`relative cursor-pointer overflow-hidden rounded-xl border-2 p-4 transition-all duration-200 ${priorityLevel === 'high'
+                                                    ? 'border-red-500 bg-red-50 shadow-md dark:border-red-400 dark:bg-red-500/10'
+                                                    : 'border-neutral-200 bg-white hover:border-red-300 hover:shadow-sm dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-red-500/50'
+                                                    }`}
+                                                onClick={() => setPriorityLevel('high')}
+                                            >
+                                                <input type="radio" name="prioritas" value="high" checked={priorityLevel === 'high'} onChange={() => setPriorityLevel('high')} className="hidden" />
+                                                {priorityLevel === 'high' && (
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent dark:from-red-500/10" />
+                                                )}
+                                                <div className="relative">
+                                                    <div className="mb-3 flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-red-400 to-red-600 shadow-sm">
+                                                        <span className="text-lg font-bold text-white">H</span>
+                                                    </div>
+                                                    <p className="text-sm font-semibold text-neutral-900 dark:text-white">
                                                         High
+                                                    </p>
+                                                    <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-400">
+                                                        Priority scheduling
+                                                    </p>
+                                                    <div className="mt-2 rounded-full bg-red-100 px-2 py-1 text-[10px] font-semibold text-red-700 dark:bg-red-500/20 dark:text-red-400">
+                                                        1-3 days
                                                     </div>
-                                                </SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                                </div>
+                                            </label>
+                                        </div>
+
                                         {errors.prioritas && (
                                             <p className="flex items-center gap-1 text-xs text-red-500">
                                                 <AlertCircle className="size-3" />
@@ -431,115 +665,28 @@ export default function WorkOrderEdit({ workOrder, departments, tenants }: PageP
                                 </div>
                             </div>
 
-                            {/* Department & Personnel */}
-                            <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                                <div className="mb-4 flex items-center gap-2">
-                                    <Building2 className="size-5 text-[#0071b7] dark:text-[#0093dd]" />
-                                    <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                                        Department & Personnel
-                                    </h2>
-                                </div>
-                                <div className="grid gap-5 sm:grid-cols-2">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="department">Department</Label>
-                                        <Select
-                                            value={selectedDepartment}
-                                            onValueChange={setSelectedDepartment}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select department" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="">
-                                                    Select department
-                                                </SelectItem>
-                                                {departments.map((dept) => (
-                                                    <SelectItem
-                                                        key={dept.id}
-                                                        value={dept.name}
-                                                    >
-                                                        {dept.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <input
-                                            type="hidden"
-                                            name="department"
-                                            value={selectedDepartment}
-                                        />
-                                        {errors.department && (
-                                            <p className="flex items-center gap-1 text-xs text-red-500">
-                                                <AlertCircle className="size-3" />
-                                                {errors.department}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="pic">
-                                            Person In Charge (PIC)
-                                        </Label>
-                                        <Input
-                                            id="pic"
-                                            name="pic"
-                                            defaultValue={workOrder.pic || ''}
-                                            placeholder="Name of responsible person"
-                                        />
-                                        {errors.pic && (
-                                            <p className="flex items-center gap-1 text-xs text-red-500">
-                                                <AlertCircle className="size-3" />
-                                                {errors.pic}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Budget */}
-                            <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                                <div className="mb-4 flex items-center gap-2">
-                                    <DollarSign className="size-5 text-[#0071b7] dark:text-[#0093dd]" />
-                                    <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                                        Budget
-                                    </h2>
-                                </div>
-                                <div className="grid gap-2">
-                                    <div className="relative">
-                                        <DollarSign className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
-                                        <Input
-                                            id="budget"
-                                            name="budget"
-                                            type="number"
-                                            step="0.01"
-                                            defaultValue={workOrder.budget || ''}
-                                            placeholder="0.00"
-                                            className="pl-10"
-                                        />
-                                    </div>
-                                    {errors.budget && (
-                                        <p className="flex items-center gap-1 text-xs text-red-500">
-                                            <AlertCircle className="size-3" />
-                                            {errors.budget}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-
                             {/* Additional Notes */}
-                            <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                                <div className="mb-4 flex items-center gap-2">
-                                    <FileText className="size-5 text-[#0071b7] dark:text-[#0093dd]" />
-                                    <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                                        Additional Notes
-                                    </h2>
+                            <div className="group rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
+                                <div className="mb-5 flex items-center gap-3">
+                                    <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-sm transition-transform group-hover:scale-110">
+                                        <FileText className="size-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                            Additional Notes
+                                        </h2>
+                                        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                            Provide any extra context or details
+                                        </p>
+                                    </div>
                                 </div>
                                 <div className="grid gap-2">
                                     <textarea
                                         id="keterangan"
                                         name="keterangan"
-                                        rows={4}
+                                        rows={5}
                                         defaultValue={workOrder.keterangan || ''}
-                                        className="flex w-full rounded-md border border-neutral-200 bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-neutral-400 focus-visible:border-[#0071b7] focus-visible:ring-[3px] focus-visible:ring-[#0071b7]/20 focus-visible:outline-none dark:border-neutral-700 dark:placeholder:text-neutral-500 dark:focus-visible:border-[#0093dd]"
+                                        className="flex w-full rounded-lg border-2 border-neutral-200 bg-gradient-to-br from-white to-neutral-50 px-4 py-3 text-sm shadow-sm transition-all placeholder:text-neutral-400 hover:border-neutral-300 hover:shadow-sm focus:border-[#0071b7] focus:ring-[3px] focus:ring-[#0071b7]/20 focus:outline-none dark:border-neutral-700 dark:from-neutral-900 dark:to-neutral-800 dark:placeholder:text-neutral-500 dark:focus:border-[#0093dd]"
                                         placeholder="Any additional information, notes, or remarks about this work order..."
                                     />
                                     {errors.keterangan && (
@@ -552,41 +699,48 @@ export default function WorkOrderEdit({ workOrder, departments, tenants }: PageP
                             </div>
 
                             {/* Incident Photos */}
-                            <div className="rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                                <div className="mb-4 flex items-center gap-2">
-                                    <Camera className="size-5 text-[#0071b7] dark:text-[#0093dd]" />
-                                    <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                                        Incident Photos
-                                    </h2>
+                            <div className="group rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
+                                <div className="mb-5 flex items-center gap-3">
+                                    <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 shadow-sm transition-transform group-hover:scale-110">
+                                        <Camera className="size-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                            Incident Photos
+                                        </h2>
+                                        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                            Upload visual documentation
+                                        </p>
+                                    </div>
                                 </div>
                                 <div className="grid gap-4">
                                     {/* Existing Photos */}
                                     {existingPhotos.length > 0 && (
                                         <div>
-                                            <Label className="mb-2 block">Existing Photos ({existingPhotos.length})</Label>
+                                            <Label className="mb-3 flex items-center gap-2">
+                                                <span>Existing Photos</span>
+                                                <span className="rounded-full bg-[#0071b7]/10 px-2 py-0.5 text-xs font-semibold text-[#0071b7] dark:bg-[#0093dd]/20 dark:text-[#0093dd]">
+                                                    {existingPhotos.length}
+                                                </span>
+                                            </Label>
                                             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                                                {existingPhotos.map((photo, index) => {
-                                                    const photoUrl = photo.startsWith('http')
-                                                        ? photo
-                                                        : `/storage/${photo}`;
-
-                                                    return (
-                                                        <div key={index} className="group relative aspect-square overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700">
-                                                            <img
-                                                                src={photoUrl}
-                                                                alt={`Existing photo ${index + 1}`}
-                                                                className="h-full w-full object-cover"
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => removeExistingPhoto(index)}
-                                                                className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-red-500 text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
-                                                            >
-                                                                <X className="size-3" />
-                                                            </button>
-                                                        </div>
-                                                    );
-                                                })}
+                                                {existingPhotos.map((photo, index) => (
+                                                    <div key={index} className="group/photo relative aspect-square overflow-hidden rounded-xl border-2 border-neutral-200 shadow-sm transition-all hover:shadow-md dark:border-neutral-700">
+                                                        <img
+                                                            src={photo}
+                                                            alt={`Existing photo ${index + 1}`}
+                                                            className="h-full w-full object-cover transition-transform group-hover/photo:scale-110"
+                                                        />
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity group-hover/photo:opacity-100" />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeExistingPhoto(index)}
+                                                            className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-red-500 text-white opacity-0 shadow-lg transition-all hover:scale-110 group-hover/photo:opacity-100"
+                                                        >
+                                                            <X className="size-4" />
+                                                        </button>
+                                                    </div>
+                                                ))}
                                             </div>
                                             <input
                                                 type="hidden"
@@ -599,18 +753,21 @@ export default function WorkOrderEdit({ workOrder, departments, tenants }: PageP
                                     {/* Upload New Photos */}
                                     <div>
                                         <Label htmlFor="incident_photos">
-                                            Add More Photos <span className="text-xs text-neutral-400">(Optional, max 5MB each)</span>
+                                            Add More Photos{' '}
+                                            <span className="text-xs text-neutral-400">(Optional, max 5MB each)</span>
                                         </Label>
                                         <div className="mt-2">
                                             <label
                                                 htmlFor="incident_photos"
-                                                className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-6 py-8 transition-colors hover:border-[#0071b7] hover:bg-[#0071b7]/5 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-[#0093dd] dark:hover:bg-[#0093dd]/5"
+                                                className="group/upload flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-neutral-300 bg-gradient-to-br from-neutral-50 to-white px-6 py-10 transition-all hover:border-[#0071b7] hover:bg-gradient-to-br hover:from-[#0071b7]/5 hover:to-[#0093dd]/5 hover:shadow-md dark:border-neutral-700 dark:from-neutral-800 dark:to-neutral-900 dark:hover:border-[#0093dd]"
                                             >
-                                                <Image className="mb-3 size-10 text-neutral-400" />
-                                                <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                                                <div className="mb-3 flex size-14 items-center justify-center rounded-xl bg-neutral-100 transition-all group-hover/upload:bg-[#0071b7]/10 dark:bg-neutral-800 dark:group-hover/upload:bg-[#0093dd]/10">
+                                                    <Image className="size-7 text-neutral-400 transition-colors group-hover/upload:text-[#0071b7] dark:group-hover/upload:text-[#0093dd]" />
+                                                </div>
+                                                <p className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
                                                     Click to upload or drag and drop
                                                 </p>
-                                                <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                                                <p className="mt-1.5 text-xs text-neutral-500 dark:text-neutral-400">
                                                     PNG, JPG, JPEG, GIF (max 5MB each)
                                                 </p>
                                                 <input
@@ -635,21 +792,27 @@ export default function WorkOrderEdit({ workOrder, departments, tenants }: PageP
                                     {/* New Photo Previews */}
                                     {photoPreviews.length > 0 && (
                                         <div>
-                                            <Label className="mb-2 block">New Photos ({photoPreviews.length})</Label>
+                                            <Label className="mb-3 flex items-center gap-2">
+                                                <span>New Photos</span>
+                                                <span className="rounded-full bg-[#0071b7]/10 px-2 py-0.5 text-xs font-semibold text-[#0071b7] dark:bg-[#0093dd]/20 dark:text-[#0093dd]">
+                                                    {photoPreviews.length}
+                                                </span>
+                                            </Label>
                                             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                                                 {photoPreviews.map((preview, index) => (
-                                                    <div key={index} className="group relative aspect-square overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700">
+                                                    <div key={index} className="group/photo relative aspect-square overflow-hidden rounded-xl border-2 border-neutral-200 shadow-sm transition-all hover:shadow-md dark:border-neutral-700">
                                                         <img
                                                             src={preview}
                                                             alt={`New preview ${index + 1}`}
-                                                            className="h-full w-full object-cover"
+                                                            className="h-full w-full object-cover transition-transform group-hover/photo:scale-110"
                                                         />
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity group-hover/photo:opacity-100" />
                                                         <button
                                                             type="button"
                                                             onClick={() => removeNewPhoto(index)}
-                                                            className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-red-500 text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
+                                                            className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-red-500 text-white opacity-0 shadow-lg transition-all hover:scale-110 group-hover/photo:opacity-100"
                                                         >
-                                                            <X className="size-3" />
+                                                            <X className="size-4" />
                                                         </button>
                                                     </div>
                                                 ))}
@@ -660,16 +823,21 @@ export default function WorkOrderEdit({ workOrder, departments, tenants }: PageP
                             </div>
 
                             {/* Actions */}
-                            <div className="flex items-center justify-end gap-3">
+                            <div className="flex items-center justify-between gap-4 rounded-2xl border border-neutral-200/60 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                                 <Link href={`/work-orders/${workOrder.id_work_order}`}>
-                                    <Button type="button" variant="outline">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="h-12 border-2 border-neutral-200 px-6 transition-all hover:border-neutral-300 hover:bg-neutral-50 hover:shadow-sm dark:border-neutral-700 dark:hover:bg-neutral-800"
+                                    >
+                                        <ArrowLeft className="mr-2 size-4" />
                                         Cancel
                                     </Button>
                                 </Link>
                                 <Button
                                     disabled={processing}
                                     type="submit"
-                                    className="bg-linear-to-r from-[#0071b7] to-[#0093dd] text-white shadow-md shadow-[#0071b7]/25 hover:shadow-lg hover:shadow-[#0071b7]/30"
+                                    className="h-12 min-w-[200px] bg-gradient-to-r from-[#0071b7] to-[#0093dd] text-base font-semibold text-white shadow-lg shadow-[#0071b7]/30 transition-all hover:shadow-xl hover:shadow-[#0071b7]/40 hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100"
                                 >
                                     {processing ? (
                                         <>
