@@ -12,7 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tb_work_order', function (Blueprint $table) {
-            $table->json('incident_photos')->nullable()->after('keterangan');
+            if (! Schema::hasColumn('tb_work_order', 'incident_photos')) {
+                if (Schema::hasColumn('tb_work_order', 'keterangan')) {
+                    $table->json('incident_photos')->nullable()->after('keterangan');
+                } else {
+                    $table->json('incident_photos')->nullable()->after('pic');
+                }
+            }
         });
     }
 
@@ -22,7 +28,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('tb_work_order', function (Blueprint $table) {
-            $table->dropColumn('incident_photos');
+            if (Schema::hasColumn('tb_work_order', 'incident_photos')) {
+                $table->dropColumn('incident_photos');
+            }
         });
     }
 };

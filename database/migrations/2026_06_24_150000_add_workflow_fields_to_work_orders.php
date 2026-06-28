@@ -31,6 +31,11 @@ return new class extends Migration
                 $table->string('tenant_name')->nullable()->after('tenant_id');
             }
 
+            // Status Pekerjaan
+            if (! Schema::hasColumn('tb_work_order', 'status_pekerjaan')) {
+                $table->string('status_pekerjaan')->default('pending_hod_review')->after('status_tiket');
+            }
+
             // HOD workflow
             if (! Schema::hasColumn('tb_work_order', 'hod_action')) {
                 $table->string('hod_action')->nullable()->after('status_pekerjaan'); // 'execute_immediately', 'schedule'
@@ -49,7 +54,11 @@ return new class extends Migration
 
             // Work completion
             if (! Schema::hasColumn('tb_work_order', 'completion_results')) {
-                $table->text('completion_results')->nullable()->after('keterangan');
+                if (Schema::hasColumn('tb_work_order', 'keterangan')) {
+                    $table->text('completion_results')->nullable()->after('keterangan');
+                } else {
+                    $table->text('completion_results')->nullable()->after('pic');
+                }
             }
 
             // Verification
@@ -72,6 +81,7 @@ return new class extends Migration
     {
         Schema::table('tb_work_order', function (Blueprint $table) {
             $columns = [
+                'status_pekerjaan',
                 'priority_type',
                 'urgent_sub_type',
                 'location_type',
