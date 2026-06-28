@@ -40,6 +40,8 @@ import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import tenants from '@/routes/tenants';
 import workOrders from '@/routes/work-orders';
+import departments from '@/routes/departments';
+import employees from '@/routes/employees';
 import type { BreadcrumbItem, NavDropdownItem, NavItem } from '@/types';
 
 
@@ -88,8 +90,8 @@ const workNavItems: NavDropdownItem[] = [
         title: 'Organization',
         icon: Building2,
         children: [
-            { title: 'Employees', href: dashboard(), icon: Users },
-            { title: 'Departments', href: dashboard(), icon: Building2 },
+            { title: 'Employees', href: employees.index(), icon: Users },
+            { title: 'Departments', href: departments.index(), icon: Building2 },
             { title: 'Divisions', href: dashboard(), icon: Building2 },
             { title: 'Tenants', href: tenants.index(), icon: Building2 },
         ],

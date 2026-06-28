@@ -12,18 +12,10 @@ import {
     Users,
     X,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -33,6 +25,9 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { show, index } from '@/routes/tenants';
+import TenantCreateModal from './Create';
+import TenantEditModal from './Edit';
+import TenantDeleteModal from './Delete';
 
 type Tenant = {
     id: number;
@@ -65,11 +60,14 @@ type Filters = {
     search?: string;
     status?: string;
     type?: string;
+    create?: string;
+    edit?: string;
 };
 
 type PageProps = {
     tenants: PaginatedData<Tenant>;
     filters: Filters;
+    editingTenant: Tenant | null;
 };
 
 const statusConfig = {
@@ -99,12 +97,45 @@ function debounce<T extends (...args: never[]) => void>(fn: T, delay: number): T
     }) as T;
 }
 
-export default function TenantIndex({ tenants, filters }: PageProps) {
+export default function TenantIndex({ tenants, filters, editingTenant }: PageProps) {
     const [searchTerm, setSearchTerm] = useState(filters.search ?? '');
     const [statusFilter, setStatusFilter] = useState(filters.status ?? 'all');
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [tenantToDelete, setTenantToDelete] = useState<Tenant | null>(null);
     const [actionMenuId, setActionMenuId] = useState<number | null>(null);
+
+    // Modal States
+    const [createOpen, setCreateOpen] = useState(filters.create === 'true');
+    const [editOpen, setEditOpen] = useState(!!filters.edit);
+    const [selectedTenantToEdit, setSelectedTenantToEdit] = useState<Tenant | null>(null);
+
+    const openEditModal = (tenant: Tenant) => {
+        setSelectedTenantToEdit(tenant);
+        setEditOpen(true);
+        setActionMenuId(null);
+    };
+
+    useEffect(() => {
+        if (editingTenant) {
+            setSelectedTenantToEdit(editingTenant);
+            setEditOpen(true);
+        }
+    }, [editingTenant]);
+
+    const closeCreateModal = () => {
+        setCreateOpen(false);
+        if (filters.create) {
+            router.get(index.url(), {}, { preserveState: true, replace: true });
+        }
+    };
+
+    const closeEditModal = () => {
+        setEditOpen(false);
+        setSelectedTenantToEdit(null);
+        if (filters.edit) {
+            router.get(index.url(), {}, { preserveState: true, replace: true });
+        }
+    };
 
     const debouncedSearch = useRef(
         debounce((term: string, status: string) => {
@@ -137,20 +168,6 @@ export default function TenantIndex({ tenants, filters }: PageProps) {
 
     const hasActiveFilters = searchTerm || statusFilter !== 'all';
 
-    const handleDelete = () => {
-        if (!tenantToDelete) {
-            return;
-        }
-
-        router.delete(`/tenants/${tenantToDelete.id}`, {
-            onSuccess: () => {
-                toast.success('Tenant berhasil dihapus.');
-                setDeleteDialogOpen(false);
-                setTenantToDelete(null);
-            },
-        });
-    };
-
     const openDeleteDialog = (tenant: Tenant) => {
         setTenantToDelete(tenant);
         setDeleteDialogOpen(true);
@@ -172,12 +189,10 @@ export default function TenantIndex({ tenants, filters }: PageProps) {
                             Manage your tenants, partners, and vendors
                         </p>
                     </div>
-                    <Link href="/tenants/create">
-                        <Button className="gap-2">
-                            <Plus className="size-4" />
-                            Add Tenant
-                        </Button>
-                    </Link>
+                    <Button onClick={() => setCreateOpen(true)} className="gap-2">
+                        <Plus className="size-4" />
+                        Add Tenant
+                    </Button>
                 </div>
 
                 {/* Search & Filter Bar */}
@@ -271,16 +286,13 @@ export default function TenantIndex({ tenants, filters }: PageProps) {
                                         </button>
                                         {actionMenuId === tenant.id && (
                                             <div className="absolute right-0 top-full mt-1 w-36 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-800">
-                                                <Link
-                                                    href={`/tenants/${tenant.id}/edit`}
+                                                <button
+                                                    onClick={() => openEditModal(tenant)}
                                                     className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-neutral-700 transition-colors hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-700"
-                                                    onClick={() =>
-                                                        setActionMenuId(null)
-                                                    }
                                                 >
                                                     <Pencil className="size-3.5" />
                                                     Edit
-                                                </Link>
+                                                </button>
                                                 <button
                                                     onClick={() =>
                                                         openDeleteDialog(tenant)
@@ -418,12 +430,10 @@ export default function TenantIndex({ tenants, filters }: PageProps) {
                                 Clear filters
                             </Button>
                         ) : (
-                            <Link href="/tenants/create">
-                                <Button size="sm" className="mt-4 gap-1.5">
-                                    <Plus className="size-3.5" />
-                                    Add Tenant
-                                </Button>
-                            </Link>
+                            <Button onClick={() => setCreateOpen(true)} size="sm" className="mt-4 gap-1.5">
+                                <Plus className="size-3.5" />
+                                Add Tenant
+                            </Button>
                         )}
                     </div>
                 )}
@@ -460,34 +470,20 @@ export default function TenantIndex({ tenants, filters }: PageProps) {
             </div>
 
             {/* Delete Confirmation Dialog */}
-            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Delete Tenant</DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to delete{' '}
-                            <span className="font-semibold text-neutral-900 dark:text-white">
-                                {tenantToDelete?.name}
-                            </span>
-                            ? This action cannot be undone.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter className="gap-2 sm:gap-0">
-                        <Button
-                            variant="outline"
-                            onClick={() => setDeleteDialogOpen(false)}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleDelete}
-                        >
-                            Delete
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <TenantDeleteModal
+                open={deleteDialogOpen}
+                onClose={() => {
+                    setDeleteDialogOpen(false);
+                    setTenantToDelete(null);
+                }}
+                tenant={tenantToDelete}
+            />
+
+            {/* Create Tenant Modal */}
+            <TenantCreateModal open={createOpen} onClose={closeCreateModal} />
+
+            {/* Edit Tenant Modal */}
+            <TenantEditModal open={editOpen} onClose={closeEditModal} tenant={selectedTenantToEdit} />
         </>
     );
 }

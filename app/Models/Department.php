@@ -2,20 +2,22 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Department extends Model
 {
     //
-    use HasFactory, HasUlids;
+    use HasFactory, HasUuids;
+
     protected $table = 'tb_department';
+
     protected $primaryKey = 'id_department';
 
     public $incrementing = false;
 
-    protected $keyType = 'int';
+    protected $keyType = 'string';
 
     protected $fillable = [
         'id_department',

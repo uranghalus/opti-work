@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\MasterData\DepartmentController;
+use App\Http\Controllers\MasterData\EmployeeController;
 use App\Http\Controllers\MasterData\TenantController;
 use App\Http\Controllers\OIDCController;
 use App\Http\Controllers\WorkManagament\WorkDataController;
@@ -13,6 +15,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Master Data - Tenants
     Route::resource('tenants', TenantController::class);
+
+    // Master Data - Departments
+    Route::get('departments', [DepartmentController::class, 'index'])->name('departments.index');
+    Route::post('departments/sync', [DepartmentController::class, 'sync'])->name('departments.sync');
+
+    // Master Data - Employees
+    Route::get('employees', [EmployeeController::class, 'index'])->name('employees.index');
+    Route::get('employees/{employee}', [EmployeeController::class, 'show'])->name('employees.show');
+    Route::post('employees/sync', [EmployeeController::class, 'sync'])->name('employees.sync');
 
     // Work Management - Work Orders
     Route::resource('work-orders', WorkOrderController::class);
@@ -42,4 +53,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('auth/redirect', [OIDCController::class, 'redirect'])->name('authsso');
 Route::get('auth/oidc/callback', [OIDCController::class, 'callback'])->name('ssocallback');
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

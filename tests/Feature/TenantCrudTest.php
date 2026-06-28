@@ -48,9 +48,9 @@ class TenantCrudTest extends TestCase
 
     public function test_server_side_search_filters_tenants(): void
     {
-        Tenants::factory()->create(['name' => 'John Doe']);
-        Tenants::factory()->create(['name' => 'Jane Smith']);
-        Tenants::factory()->create(['company_name' => 'Acme Corp']);
+        Tenants::factory()->create(['name' => 'John Doe', 'company_name' => 'Company A', 'email' => 'a@a.com']);
+        Tenants::factory()->create(['name' => 'Jane Smith', 'company_name' => 'Company B', 'email' => 'b@b.com']);
+        Tenants::factory()->create(['name' => 'Bob Davis', 'company_name' => 'Acme Corp', 'email' => 'c@c.com']);
 
         $response = $this->actingAs($this->user)
             ->get(route('tenants.index', ['search' => 'John']));
@@ -83,11 +83,7 @@ class TenantCrudTest extends TestCase
     {
         $response = $this->actingAs($this->user)->get(route('tenants.create'));
 
-        $response->assertOk();
-        $response->assertInertia(
-            fn (Assert $page) => $page
-                ->component('Tenants/Create')
-        );
+        $response->assertRedirect(route('tenants.index', ['create' => 'true']));
     }
 
     public function test_authenticated_users_can_create_a_tenant(): void
@@ -170,12 +166,7 @@ class TenantCrudTest extends TestCase
 
         $response = $this->actingAs($this->user)->get(route('tenants.edit', $tenant));
 
-        $response->assertOk();
-        $response->assertInertia(
-            fn (Assert $page) => $page
-                ->component('Tenants/Edit')
-                ->has('tenant')
-        );
+        $response->assertRedirect(route('tenants.index', ['edit' => $tenant->id]));
     }
 
     public function test_authenticated_users_can_update_a_tenant(): void
@@ -183,12 +174,32 @@ class TenantCrudTest extends TestCase
         $tenant = Tenants::factory()->create(['name' => 'Old Name']);
 
         $response = $this->actingAs($this->user)
+            ->from(route('tenants.index'))
             ->put(route('tenants.update', $tenant), [
                 'name' => 'Updated Name',
                 'status' => 'inactive',
             ]);
 
         $response->assertRedirect(route('tenants.index'));
+        $this->assertDatabaseHas('tenants', [
+            'id' => $tenant->id,
+            'name' => 'Updated Name',
+            'status' => 'inactive',
+        ]);
+    }
+
+    public function test_authenticated_users_can_update_a_tenant_from_show_page(): void
+    {
+        $tenant = Tenants::factory()->create(['name' => 'Old Name']);
+
+        $response = $this->actingAs($this->user)
+            ->from(route('tenants.show', $tenant))
+            ->put(route('tenants.update', $tenant), [
+                'name' => 'Updated Name',
+                'status' => 'inactive',
+            ]);
+
+        $response->assertRedirect(route('tenants.show', $tenant));
         $this->assertDatabaseHas('tenants', [
             'id' => $tenant->id,
             'name' => 'Updated Name',

@@ -46,18 +46,24 @@ class TenantController extends Controller
             ->paginate(12)
             ->withQueryString();
 
+        $editingTenant = null;
+        if ($request->filled('edit')) {
+            $editingTenant = Tenants::find($request->edit);
+        }
+
         return Inertia::render('Tenants/Index', [
             'tenants' => $tenants,
-            'filters' => $request->only(['search', 'status', 'type']),
+            'filters' => $request->only(['search', 'status', 'type', 'create', 'edit']),
+            'editingTenant' => $editingTenant,
         ]);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create(): Response
+    public function create(): RedirectResponse
     {
-        return Inertia::render('Tenants/Create');
+        return redirect()->route('tenants.index', ['create' => 'true']);
     }
 
     /**
@@ -90,11 +96,9 @@ class TenantController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Tenants $tenant): Response
+    public function edit(Tenants $tenant): RedirectResponse
     {
-        return Inertia::render('Tenants/Edit', [
-            'tenant' => $tenant,
-        ]);
+        return redirect()->route('tenants.index', ['edit' => $tenant->id]);
     }
 
     /**
@@ -116,7 +120,7 @@ class TenantController extends Controller
 
         $tenant->update($validatedData);
 
-        return redirect()->route('tenants.index')
+        return redirect()->back()
             ->with('toast', ['type' => 'success', 'message' => 'Data Tenant berhasil diperbarui.']);
     }
 
