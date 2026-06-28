@@ -4,11 +4,11 @@ namespace App\Http\Controllers\WorkManagament;
 
 use App\Http\Controllers\Controller;
 use App\Models\Department;
+use App\Models\Employee;
 use App\Models\Tenants;
 use App\Models\WorkOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -336,21 +336,22 @@ class WorkOrderController extends Controller
      */
     public function hodReview(WorkOrder $workOrder)
     {
-        $employees = [];
-        $url = config('services.optigate_portal.url').'/api/employees';
-        $token = config('services.optigate_portal.token');
-        try {
-            $response = Http::withToken($token)
-                ->timeout(10)
-                ->get($url);
-            if ($response->successful()) {
-                $employees = $response->json('data') ?? $response->json();
-            } else {
-                Log::error('Gagal mengambil data employee dari API Portal: '.$response->body());
-            }
-        } catch (\Throwable $th) {
-            Log::error('Exception API Employee: '.$th->getMessage());
-        }
+        $department = $workOrder->departmentData;
+
+        $employees = Employee::with('position')
+            ->when($department, function ($query, $department) {
+                return $query->where('id_department', $department->id_department);
+            })
+            ->orderBy('nama_employee')
+            ->get()
+            ->map(function ($emp) {
+                return [
+                    'id' => $emp->id_employee,
+                    'name' => $emp->nama_employee,
+                    'position' => $emp->position?->nama_position,
+                ];
+            })
+            ->toArray();
 
         return Inertia::render('WorkOrder/HodReview', [
             'workOrder' => $workOrder,
@@ -403,21 +404,22 @@ class WorkOrderController extends Controller
      */
     public function assign(WorkOrder $workOrder)
     {
-        $employees = [];
-        $url = config('services.optigate_portal.url').'/api/employees';
-        $token = config('services.optigate_portal.token');
-        try {
-            $response = Http::withToken($token)
-                ->timeout(10)
-                ->get($url);
-            if ($response->successful()) {
-                $employees = $response->json('data') ?? $response->json();
-            } else {
-                Log::error('Gagal mengambil data employee dari API Portal: '.$response->body());
-            }
-        } catch (\Throwable $th) {
-            Log::error('Exception API Employee: '.$th->getMessage());
-        }
+        $department = $workOrder->departmentData;
+
+        $employees = Employee::with('position')
+            ->when($department, function ($query, $department) {
+                return $query->where('id_department', $department->id_department);
+            })
+            ->orderBy('nama_employee')
+            ->get()
+            ->map(function ($emp) {
+                return [
+                    'id' => $emp->id_employee,
+                    'name' => $emp->nama_employee,
+                    'position' => $emp->position?->nama_position,
+                ];
+            })
+            ->toArray();
 
         return Inertia::render('WorkOrder/Assign', [
             'workOrder' => $workOrder,
