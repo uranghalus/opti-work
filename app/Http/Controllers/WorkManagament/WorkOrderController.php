@@ -7,8 +7,10 @@ use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Tenants;
 use App\Models\WorkOrder;
+use App\Notifications\WorkOrderNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -183,20 +185,60 @@ class WorkOrderController extends Controller
             $validated['incident_photos'] = $paths;
         }
 
-        // 5. Sequence Generator Nomor WO
+        // 5. Sequence Generator Nomor WO dengan Atomic Counter di transaction
         $dateString = now()->format('dmY');
         $deptCode = strtoupper($validated['department_tujuan']);
+        $prefix = sprintf('WO.%s.%s.', $dateString, $deptCode);
 
-        $lastWo = WorkOrder::whereDate('tgl_work_order', now())
-            ->where('department_tujuan', $validated['department_tujuan'])
-            ->orderBy('id_work_order', 'desc')
-            ->first();
+        // Gunakan dedicated sequence table untuk atomic increment (SQLite-safe)
+        $workOrder = DB::transaction(function () use ($prefix, $validated) {
+            // Upsert untuk memastikan row sequence ada (force IMMEDIATE lock di SQLite)
+            DB::table('work_order_sequences')->upsert(
+                [
+                    'prefix' => $prefix,
+                    'last_sequence' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                'prefix',
+                ['updated_at' => now()]
+            );
 
-        $seq = $lastWo ? (int) substr($lastWo->no_work_order, -3) + 1 : 1;
-        $validated['no_work_order'] = sprintf('WO.%s.%s.%s', $dateString, $deptCode, str_pad($seq, 3, '0', STR_PAD_LEFT));
+            // Atomic increment
+            DB::table('work_order_sequences')
+                ->where('prefix', $prefix)
+                ->increment('last_sequence');
 
-        // 6. Save
-        WorkOrder::create($validated);
+            // Baca nilai baru
+            $seq = DB::table('work_order_sequences')
+                ->where('prefix', $prefix)
+                ->value('last_sequence');
+
+            $validated['no_work_order'] = $prefix.str_pad($seq, 3, '0', STR_PAD_LEFT);
+
+            return WorkOrder::create($validated);
+        });
+        // Cari HOD via department
+        $dept = Department::where('nama_department', $validated['department_tujuan'])->first();
+        $hod = $dept?->hod_user_id ? Employee::find($dept->hod_user_id) : null;
+
+        // BUKA KOMENTAR DD DI BAWAH INI UNTUK TESTING JIKA MASIH GAGAL:
+
+        // dd([
+        //     'input_departemen' => $validated['department_tujuan'],
+        //     'data_departemen'  => $dept,
+        //     'data_hod'         => $hod,
+        //     'nomor_hp_hod'     => $hod?->number
+        // ]);
+
+        if ($hod && $hod->number) {
+            $hod->notify(new WorkOrderNotification($workOrder));
+        } else {
+            // Mencatat alasan gagal ke file log jika HOD tidak ditemukan
+            Log::warning("Gagal kirim WA WO {$workOrder->no_work_order}: ".
+                (! $dept ? 'Departemen tidak ditemukan.' : (! $hod ? 'HOD belum di-set untuk departemen ini.' :
+                    'HOD tidak memiliki nomor telepon.')));
+        }
 
         return redirect()->route('work-orders.index')->with('success', 'Work order created successfully');
     }

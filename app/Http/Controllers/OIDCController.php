@@ -37,7 +37,7 @@ class OIDCController extends Controller
 
             // 3. Cari ID Department di database lokal berdasarkan nama
             $departmentId = null;
-            if (!empty($ssoDepartmentName)) {
+            if (! empty($ssoDepartmentName)) {
                 // Asumsi nama kolom di tabel tb_department adalah 'nama_department'
                 $localDepartment = Department::where('nama_department', $ssoDepartmentName)->first();
 
@@ -81,9 +81,9 @@ class OIDCController extends Controller
             // 8. Redirect ke dashboard
             return redirect()->intended('/dashboard');
         } catch (\Exception $e) {
-            Log::error('OIDC SSO Callback Error: ' . $e->getMessage());
+            Log::error('OIDC SSO Callback Error: '.$e->getMessage());
 
-            return redirect('/')->with('error', 'Terjadi kesalahan saat login SSO: ' . $e->getMessage());
+            return redirect('/')->with('error', 'Terjadi kesalahan saat login SSO: '.$e->getMessage());
         }
     }
 

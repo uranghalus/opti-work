@@ -22,9 +22,10 @@ class SyncDepartments extends Command
 
     // Deskripsi command
     protected $description = 'Auto-sync departments data from Optigate Portal API to local database';
+
     public function handle()
     {
-        $url = config('services.optigate_portal.url') . '/api/departments';
+        $url = config('services.optigate_portal.url').'/api/departments';
         $token = config('services.optigate_portal.token');
 
         $this->info('Memulai sinkronisasi department...');
@@ -55,12 +56,12 @@ class SyncDepartments extends Command
                 $this->info("Sinkronisasi selesai! $count data berhasil diproses.");
                 Log::info("Auto-sync Department berhasil: $count data.");
             } else {
-                $errorMsg = 'Gagal mengambil data department dari API Portal: ' . $response->body();
+                $errorMsg = 'Gagal mengambil data department dari API Portal: '.$response->body();
                 $this->error($errorMsg);
                 Log::error($errorMsg);
             }
         } catch (\Throwable $th) {
-            $errorMsg = 'Exception API Department: ' . $th->getMessage();
+            $errorMsg = 'Exception API Department: '.$th->getMessage();
             $this->error($errorMsg);
             Log::error($errorMsg);
         }

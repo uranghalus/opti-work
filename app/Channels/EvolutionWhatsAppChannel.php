@@ -2,33 +2,34 @@
 
 namespace App\Channels;
 
-use App\Notifications\WorkOrderNotification;
+use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Http;
 
 class EvolutionWhatsAppChannel
 {
-    public function send($notifiable, WorkOrderNotification $notification)
+    public function send($notifiable, Notification $notification)
     {
-        // Memanggil method toWhatsApp yang ada di dalam class Notification
-        $messageData = $notification->toWhatsApp($notifiable);
-
-        $apiUrl = env('EVOLUTION_API_URL');
-        $instance = env('EVOLUTION_INSTANCE_NAME');
-        $apiKey = env('EVOLUTION_API_KEY');
-
-        // Pastikan model User memiliki kolom phone_number
-        $phoneNumber = $notifiable->phone_number;
-
-        if (! $phoneNumber) {
+        if (! method_exists($notification, 'toWhatsApp')) {
             return;
         }
 
+        // 1. Ambil array-nya
+        $messageArray = $notification->toWhatsApp($notifiable);
+
+        // 2. Ambil nomor HP
+        $phoneNumber = $notifiable->routeNotificationFor('EvolutionWhatsApp') ?? $notifiable->number;
+
+        $apiUrl = config('services.evolution.api_url');
+        $instance = config('services.evolution.instance_name');
+        $apiKey = config('services.evolution.api_key');
+
+        // 3. Kirim sebagai array, tambahkan 'number' ke dalam array tersebut
         Http::withHeaders([
             'apikey' => $apiKey,
             'Content-Type' => 'application/json',
-        ])->post("{$apiUrl}/message/sendButtons/{$instance}", [
+        ])->post("{$apiUrl}/message/sendText/{$instance}", [
             'number' => $phoneNumber,
-            'buttonMessage' => $messageData,
+            'text' => $messageArray['text'], // Mengirim string murni di dalam field 'text'
         ]);
     }
 }
