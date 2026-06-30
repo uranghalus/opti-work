@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { index, sync } from '@/routes/departments';
+import { index, show, sync } from '@/routes/departments';
 
 type Department = {
     id_department: string;
@@ -217,13 +217,12 @@ export default function DepartmentIndex({ departments, filters }: PageProps) {
                                                 <Building2 className="size-3 text-neutral-400" />
                                                 <span>Optigate Portal</span>
                                             </div>
-                                            <span>
-                                                Updated:{' '}
-                                                {new Date(dept.updated_at).toLocaleDateString('en-US', {
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                })}
-                                            </span>
+                                            <button
+                                                onClick={() => router.get(show.url({ department: dept.id_department }))}
+                                                className="text-xs font-medium text-[#0071b7] hover:text-[#0093dd] transition-colors cursor-pointer"
+                                            >
+                                                Detail
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

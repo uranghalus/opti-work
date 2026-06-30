@@ -18,6 +18,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Master Data - Departments
     Route::get('departments', [DepartmentController::class, 'index'])->name('departments.index');
+    Route::get('departments/{department}', [DepartmentController::class, 'show'])->name('departments.show');
     Route::post('departments/sync', [DepartmentController::class, 'sync'])->name('departments.sync');
 
     // Master Data - Employees

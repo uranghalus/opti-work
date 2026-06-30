@@ -41,14 +41,12 @@ class SyncDepartments extends Command
                 foreach ($departments as $dept) {
                     // Gunakan updateOrCreate untuk mencegah duplikasi data
                     Department::updateOrCreate(
-                        // Parameter 1: Kondisi pencarian (biasanya ID unik dari API)
                         ['id_department' => $dept['id']],
-
-                        // Parameter 2: Data yang akan di-update atau di-insert
                         [
                             'nama_department' => $dept['name'],
                             'kode_department' => $dept['code'] ?? null,
-                            // Tambahkan mapping field lain sesuai struktur tabel Anda
+                            'hod_user_id' => $dept['hod_user_id'] ?? null,
+                            'manager_user_id' => $dept['manager_user_id'] ?? null,
                         ]
                     );
                     $count++;

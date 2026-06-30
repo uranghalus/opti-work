@@ -39,6 +39,16 @@ class DepartmentController extends Controller
     }
 
     /**
+     * Display the specified department.
+     */
+    public function show(Department $department): Response
+    {
+        return Inertia::render('Departments/Show', [
+            'department' => $department->load('employees'),
+        ]);
+    }
+
+    /**
      * Trigger sync with Optigate Portal.
      */
     public function sync(): RedirectResponse
