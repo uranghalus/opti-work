@@ -49,4 +49,11 @@ return [
         'url' => env('WEB_PORTAL_URL'),
         'token' => env('WEB_PORTAL_TOKEN'), // Tambahkan baris ini
     ],
+
+    'evolution' => [
+        'api_url' => env('EVOLUTION_API_URL'),
+        'api_key' => env('EVOLUTION_API_KEY'),
+        'instance_name' => env('EVOLUTION_INSTANCE_NAME'),
+        'base_url' => env('WHATSAPP_BASE_URL', env('APP_URL', 'http://localhost')),
+    ],
 ];

@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Notifications\Notifiable;
 
 class Employee extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Notifiable;
 
     protected $table = 'tb_employee';
 
@@ -45,5 +46,16 @@ class Employee extends Model
     public function position(): BelongsTo
     {
         return $this->belongsTo(Position::class, 'id_position', 'id_position');
+    }
+
+    /**
+     * Route notifications for the Evolution WhatsApp channel.
+     *
+     * @return string
+     */
+    public function routeNotificationForEvolutionWhatsApp()
+    {
+        // Karena di database Anda nomornya disimpan di kolom 'number'
+        return $this->number;
     }
 }
