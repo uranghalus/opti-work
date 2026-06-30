@@ -45,6 +45,7 @@ class SyncEmployees extends Command
                         [
                             'nama_position' => $pos['name'],
                             'id_department' => $pos['department_id'] ?? null,
+                            'id_division' => $pos['division_id'] ?? null,
                         ]
                     );
                 }
@@ -79,6 +80,7 @@ class SyncEmployees extends Command
                             'number' => $dept['whatsapp_number'] ?? null,
                             'photo_url' => $dept['photo_url'] ?? null,
                             'id_department' => $dept['department'] ?? null,
+                            'id_division' => $dept['division'] ?? null,
                             'id_position' => $dept['position'] ?? null,
                             'last_login_ip' => $dept['last_login_ip'] ?? null,
                         ]

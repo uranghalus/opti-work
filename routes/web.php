@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\MasterData\DepartmentController;
+use App\Http\Controllers\MasterData\DivisionController;
 use App\Http\Controllers\MasterData\EmployeeController;
 use App\Http\Controllers\MasterData\TenantController;
 use App\Http\Controllers\OIDCController;
@@ -19,6 +20,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Master Data - Departments
     Route::get('departments', [DepartmentController::class, 'index'])->name('departments.index');
     Route::post('departments/sync', [DepartmentController::class, 'sync'])->name('departments.sync');
+
+    // Master Data - Divisions
+    Route::get('divisions', [DivisionController::class, 'index'])->name('divisions.index');
+    Route::post('divisions/sync', [DivisionController::class, 'sync'])->name('divisions.sync');
 
     // Master Data - Employees
     Route::get('employees', [EmployeeController::class, 'index'])->name('employees.index');

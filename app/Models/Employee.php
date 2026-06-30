@@ -27,6 +27,7 @@ class Employee extends Model
         'number',
         'photo_url',
         'id_department',
+        'id_division',
         'id_position',
         'last_login_ip',
     ];
@@ -34,6 +35,11 @@ class Employee extends Model
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'id_department', 'id_department');
+    }
+
+    public function division(): BelongsTo
+    {
+        return $this->belongsTo(Division::class, 'id_division', 'id_division');
     }
 
     public function position(): BelongsTo

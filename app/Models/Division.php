@@ -7,32 +7,27 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Position extends Model
+class Division extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'tb_position';
+    protected $table = 'tb_division';
 
-    protected $primaryKey = 'id_position';
+    protected $primaryKey = 'id_division';
 
     public $incrementing = false;
 
     protected $keyType = 'string';
 
     protected $fillable = [
-        'id_position',
-        'nama_position',
-        'id_department',
         'id_division',
+        'kode_division',
+        'nama_division',
+        'id_department',
     ];
 
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'id_department', 'id_department');
-    }
-
-    public function division(): BelongsTo
-    {
-        return $this->belongsTo(Division::class, 'id_division', 'id_division');
     }
 }

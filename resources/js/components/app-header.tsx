@@ -41,6 +41,7 @@ import { dashboard } from '@/routes';
 import tenants from '@/routes/tenants';
 import workOrders from '@/routes/work-orders';
 import departments from '@/routes/departments';
+import divisions from '@/routes/divisions';
 import employees from '@/routes/employees';
 import type { BreadcrumbItem, NavDropdownItem, NavItem } from '@/types';
 
@@ -92,7 +93,7 @@ const workNavItems: NavDropdownItem[] = [
         children: [
             { title: 'Employees', href: employees.index(), icon: Users },
             { title: 'Departments', href: departments.index(), icon: Building2 },
-            { title: 'Divisions', href: dashboard(), icon: Building2 },
+            { title: 'Divisions', href: divisions.index(), icon: Building2 },
             { title: 'Tenants', href: tenants.index(), icon: Building2 },
         ],
     },
