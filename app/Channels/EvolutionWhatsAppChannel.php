@@ -3,33 +3,43 @@
 namespace App\Channels;
 
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use App\Services\EvolutionApiService;
 
 class EvolutionWhatsAppChannel
 {
+    protected $service;
+
+    public function __construct(EvolutionApiService $service)
+    {
+        $this->service = $service;
+    }
+
     public function send($notifiable, Notification $notification)
     {
-        if (! method_exists($notification, 'toWhatsApp')) {
+        if (!method_exists($notification, 'toWhatsApp')) {
             return;
         }
 
-        // 1. Ambil array-nya
-        $messageArray = $notification->toWhatsApp($notifiable);
+        $message = $notification->toWhatsApp($notifiable);
+        $phoneNumber = $notifiable->routeNotificationFor('EvolutionWhatsApp')
+            ?? $notifiable->phone
+            ?? $notifiable->number;
 
-        // 2. Ambil nomor HP
-        $phoneNumber = $notifiable->routeNotificationFor('EvolutionWhatsApp') ?? $notifiable->number;
+        if (!$phoneNumber) {
+            Log::error('EvolutionWhatsAppChannel: No phone number found for ' . get_class($notifiable));
+            return;
+        }
 
-        $apiUrl = config('services.evolution.api_url');
-        $instance = config('services.evolution.instance_name');
-        $apiKey = config('services.evolution.api_key');
+        // Gunakan Service yang sudah kita buat agar lebih bersih
+        try {
+            $response = $this->service->sendText($phoneNumber, $message['text']);
 
-        // 3. Kirim sebagai array, tambahkan 'number' ke dalam array tersebut
-        Http::withHeaders([
-            'apikey' => $apiKey,
-            'Content-Type' => 'application/json',
-        ])->post("{$apiUrl}/message/sendText/{$instance}", [
-            'number' => $phoneNumber,
-            'text' => $messageArray['text'], // Mengirim string murni di dalam field 'text'
-        ]);
+            if ($response->failed()) {
+                Log::error('EvolutionWhatsAppChannel failed: ' . $response->body());
+            }
+        } catch (\Exception $e) {
+            Log::error('EvolutionWhatsAppChannel Exception: ' . $e->getMessage());
+        }
     }
 }

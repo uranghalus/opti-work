@@ -8,7 +8,7 @@ import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
-import { general as settingsGeneral, waGateway as settingsWaGateway } from '@/routes/settings';
+import { general as settingsGeneral } from '@/routes/settings';
 import type { NavItem } from '@/types';
 
 const sidebarNavItems: NavItem[] = [
@@ -25,11 +25,6 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'Appearance',
         href: editAppearance(),
-        icon: null,
-    },
-    {
-        title: 'Evolution API',
-        href: settingsWaGateway(),
         icon: null,
     },
     {

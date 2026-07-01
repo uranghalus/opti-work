@@ -36,23 +36,25 @@ class WorkOrderNotification extends Notification
             default => '⚪',
         };
 
-        $priorityLabel = "{$emoji} ".strtoupper($this->wo->priority_type).' / '.ucfirst($this->wo->prioritas);
+        $priorityLabel = "{$emoji} " . strtoupper($this->wo->priority_type) . ' / ' . ucfirst($this->wo->prioritas);
 
         $text = "🎫 *WORK ORDER BARU*\n"
-            ."━━━━━━━━━━━━━━━━━━\n\n"
-            ."*No:* {$this->wo->no_work_order}\n"
-            ."*Lokasi:* {$this->wo->lokasi}\n"
-            ."*Departemen:* {$this->wo->department_tujuan}\n"
-            ."*Prioritas:* {$priorityLabel}\n"
-            ."*Pemohon:* {$this->wo->user_requester}\n\n"
-            ."*Rincian Pekerjaan:*\n_{$this->wo->rincian_pekerjaan}_\n";
+            . "━━━━━━━━━━━━━━━━━━\n\n"
+            . "*No:* {$this->wo->no_work_order}\n"
+            . "*Lokasi:* {$this->wo->lokasi}\n"
+            . "*Departemen:* {$this->wo->department_tujuan}\n"
+            . "*Prioritas:* {$priorityLabel}\n"
+            . "*Pemohon:* {$this->wo->user_requester}\n\n"
+            . "*Rincian Pekerjaan:*\n_{$this->wo->rincian_pekerjaan}_\n";
 
         if ($this->wo->keterangan) {
             $text .= "\n*Keterangan:*\n_{$this->wo->keterangan}_\n";
         }
 
+        // Pastikan URL dipisah dengan spasi atau baris baru yang jelas
         $text .= "\n━━━━━━━━━━━━━━━━━━\n"
-            ."🔗 *Detail:*\n{$detailUrl}";
+            . "🔗 *Detail pekerjaan:* \n"
+            . $detailUrl; //
 
         return [
             'text' => $text,
