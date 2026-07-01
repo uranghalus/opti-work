@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\AppSettingsController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
 use Illuminate\Support\Facades\Route;
@@ -22,4 +23,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('user-password.update');
 
     Route::inertia('settings/appearance', 'settings/appearance')->name('appearance.edit');
+
+    Route::get('settings/wa-gateway', [AppSettingsController::class, 'waGateway'])->name('settings.wa-gateway');
+    Route::post('settings/wa-gateway', [AppSettingsController::class, 'updateWaGateway'])->name('settings.wa-gateway.update');
+
+    Route::get('settings/general', [AppSettingsController::class, 'general'])->name('settings.general');
+    Route::post('settings/general', [AppSettingsController::class, 'updateGeneral'])->name('settings.general.update');
 });
