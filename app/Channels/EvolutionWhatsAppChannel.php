@@ -2,9 +2,9 @@
 
 namespace App\Channels;
 
+use App\Services\EvolutionApiService;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
-use App\Services\EvolutionApiService;
 
 class EvolutionWhatsAppChannel
 {
@@ -17,7 +17,7 @@ class EvolutionWhatsAppChannel
 
     public function send($notifiable, Notification $notification)
     {
-        if (!method_exists($notification, 'toWhatsApp')) {
+        if (! method_exists($notification, 'toWhatsApp')) {
             return;
         }
 
@@ -26,8 +26,9 @@ class EvolutionWhatsAppChannel
             ?? $notifiable->phone
             ?? $notifiable->number;
 
-        if (!$phoneNumber) {
-            Log::error('EvolutionWhatsAppChannel: No phone number found for ' . get_class($notifiable));
+        if (! $phoneNumber) {
+            Log::error('EvolutionWhatsAppChannel: No phone number found for '.get_class($notifiable));
+
             return;
         }
 
@@ -36,10 +37,10 @@ class EvolutionWhatsAppChannel
             $response = $this->service->sendText($phoneNumber, $message['text']);
 
             if ($response->failed()) {
-                Log::error('EvolutionWhatsAppChannel failed: ' . $response->body());
+                Log::error('EvolutionWhatsAppChannel failed: '.$response->body());
             }
         } catch (\Exception $e) {
-            Log::error('EvolutionWhatsAppChannel Exception: ' . $e->getMessage());
+            Log::error('EvolutionWhatsAppChannel Exception: '.$e->getMessage());
         }
     }
 }

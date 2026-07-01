@@ -11,23 +11,26 @@ class EvolutionApiService
      * Create a new class instance.
      */
     protected $baseUrl;
+
     protected $globalApiKey;
 
     // Properti Instance yang dipanggil dinamis dari Database Settings
     protected $instanceName;
+
     protected $instanceToken;
+
     public function __construct()
     {
-        $this->baseUrl = config('services.evolution.url');
+        $this->baseUrl = config('services.evolution.api_url');
         $this->globalApiKey = config('services.evolution.global_api_key');
 
         // Memastikan instance yang dipakai selalu yang terbaru dari konfigurasi user
-        $this->instanceName = Setting::getValue('instance_name', 'wa_gateway',);
+        $this->instanceName = Setting::getValue('instance_name', 'wa_gateway');
         $this->instanceToken = Setting::getValue('instance_token', 'wa_gateway');
     }
-   /* =========================================================
-       1. HTTP CLIENT FACTORY
-       ========================================================= */
+    /* =========================================================
+        1. HTTP CLIENT FACTORY
+        ========================================================= */
 
     /**
      * Digunakan KHUSUS untuk memanipulasi Instance (Create, Restart, Delete)
@@ -89,7 +92,6 @@ class EvolutionApiService
         return $this->instanceClient()->delete("/instance/logout/{$this->instanceName}")->json();
     }
 
-
     /* =========================================================
        4. MESSAGING SERVICES
        ========================================================= */
@@ -121,7 +123,6 @@ class EvolutionApiService
         ])->json();
     }
 
-
     /* =========================================================
        5. UTILITIES
        ========================================================= */
@@ -133,7 +134,7 @@ class EvolutionApiService
     public function checkNumberOnWhatsApp($number)
     {
         return $this->instanceClient()->post("/chat/whatsappNumbers/{$this->instanceName}", [
-            'numbers' => [$number]
+            'numbers' => [$number],
         ])->json();
     }
 }
