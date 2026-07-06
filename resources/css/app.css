@@ -163,3 +163,48 @@
         transform-origin: left;
     }
 }
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.animate-fade-in {
+    animation: fadeInUp 0.7s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.animate-fade-in-scale {
+    animation: fadeInScale 0.8s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.animate-delay-100 { animation-delay: 100ms; }
+.animate-delay-200 { animation-delay: 200ms; }
+.animate-delay-300 { animation-delay: 300ms; }
+.animate-delay-400 { animation-delay: 400ms; }
+.animate-delay-500 { animation-delay: 500ms; }
+
+.bg-primary-gradient {
+    background: linear-gradient(135deg, oklch(0.535 0.134 214.8), oklch(0.6 0.14 214.8));
+}
+
+.border-primary-subtle {
+    border-color: oklch(0.535 0.134 214.8 / 0.15);
+}
+
+.text-primary-gradient {
+    background: linear-gradient(135deg, oklch(0.535 0.134 214.8), oklch(0.6 0.14 214.8));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}

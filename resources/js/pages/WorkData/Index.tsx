@@ -67,7 +67,9 @@ export default function WorkDataIndex({ workData, filters }: PageProps) {
     };
 
     const getStatusBadge = (status: string | null) => {
-        if (!status) return null;
+        if (!status) {
+return null;
+}
 
         const statusConfig: Record<string, { bg: string; text: string; darkBg: string; darkText: string }> = {
             draft: {

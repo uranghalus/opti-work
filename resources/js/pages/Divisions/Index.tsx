@@ -104,6 +104,7 @@ export default function DivisionIndex({ divisions, filters }: PageProps) {
                 .join('')
                 .toUpperCase();
         }
+
         return code.slice(0, 2).toUpperCase();
     };
 
@@ -188,6 +189,7 @@ export default function DivisionIndex({ divisions, filters }: PageProps) {
                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {divisions.data.map((div) => {
                             const initials = getInitials(div.nama_division, div.kode_division);
+
                             return (
                                 <div
                                     key={div.id_division}

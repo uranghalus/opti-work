@@ -68,9 +68,11 @@ export default function EmployeeShow({ employee }: PageProps) {
                 .join('')
                 .toUpperCase();
         }
+
         if (code) {
             return code.slice(0, 2).toUpperCase();
         }
+
         return 'EM';
     };
 

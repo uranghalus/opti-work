@@ -21,11 +21,7 @@ const workflowSteps: WorkflowStep[] = [
     { key: 'verification', label: 'Verification', description: 'Final verification' },
 ];
 
-export function WorkflowStepper({
-    steps = workflowSteps,
-    currentStep,
-    className,
-}: WorkflowStepperProps) {
+export function WorkflowStepper({ steps = workflowSteps, currentStep, className }: WorkflowStepperProps) {
     return (
         <div className={cn('w-full', className)}>
             <div className="relative flex items-center justify-between">
@@ -35,30 +31,24 @@ export function WorkflowStepper({
                     const isUpcoming = index > currentStep;
 
                     return (
-                        <div
-                            key={step.key}
-                            className="relative flex flex-1 flex-col items-center"
-                        >
+                        <div key={step.key} className="relative flex flex-1 flex-col items-center">
                             {/* Step Circle */}
                             <div
                                 className={cn(
-                                    'flex size-10 items-center justify-center rounded-full border-2 transition-all',
-                                    isCompleted &&
-                                    'border-[#0071b7] bg-[#0071b7] dark:border-[#0093dd] dark:bg-[#0093dd]',
-                                    isCurrent &&
-                                    'border-[#0071b7] bg-white shadow-md ring-4 ring-[#0071b7]/20 dark:border-[#0093dd] dark:bg-neutral-900 dark:ring-[#0093dd]/20',
-                                    isUpcoming &&
-                                    'border-neutral-300 bg-white dark:border-neutral-700 dark:bg-neutral-900'
+                                    'flex size-10 items-center justify-center rounded-full border-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]',
+                                    isCompleted && 'border-primary bg-primary',
+                                    isCurrent && 'border-primary bg-background shadow-[0_0_0_4px] shadow-primary/20 dark:shadow-primary/10',
+                                    isUpcoming && 'border-border bg-background',
                                 )}
                             >
                                 {isCompleted ? (
-                                    <Check className="size-5 text-white" />
+                                    <Check className="size-5 text-primary-foreground" />
                                 ) : (
                                     <span
                                         className={cn(
-                                            'text-sm font-semibold',
-                                            isCurrent && 'text-[#0071b7] dark:text-[#0093dd]',
-                                            isUpcoming && 'text-neutral-400 dark:text-neutral-600'
+                                            'text-sm font-semibold transition-colors',
+                                            isCurrent && 'text-primary',
+                                            isUpcoming && 'text-muted-foreground/50',
                                         )}
                                     >
                                         {index + 1}
@@ -70,16 +60,16 @@ export function WorkflowStepper({
                             <div className="mt-2 text-center">
                                 <p
                                     className={cn(
-                                        'text-xs font-medium',
-                                        isCompleted && 'text-[#0071b7] dark:text-[#0093dd]',
-                                        isCurrent && 'text-neutral-900 dark:text-white',
-                                        isUpcoming && 'text-neutral-500 dark:text-neutral-500'
+                                        'text-xs font-medium transition-colors duration-300',
+                                        isCompleted && 'text-primary',
+                                        isCurrent && 'text-foreground',
+                                        isUpcoming && 'text-muted-foreground/50',
                                     )}
                                 >
                                     {step.label}
                                 </p>
                                 {step.description && (
-                                    <p className="mt-0.5 hidden text-[10px] text-neutral-500 sm:block dark:text-neutral-400">
+                                    <p className="mt-0.5 hidden text-[10px] text-muted-foreground sm:block">
                                         {step.description}
                                     </p>
                                 )}
@@ -89,10 +79,10 @@ export function WorkflowStepper({
                             {index < steps.length - 1 && (
                                 <div
                                     className={cn(
-                                        'absolute left-[calc(50%+20px)] top-5 h-0.5 w-[calc(100%-40px)]',
-                                        isCompleted && 'bg-[#0071b7] dark:bg-[#0093dd]',
-                                        isCurrent && 'bg-linear-to-r from-[#0071b7] to-neutral-300 dark:from-[#0093dd] dark:to-neutral-700',
-                                        isUpcoming && 'bg-neutral-300 dark:bg-neutral-700'
+                                        'absolute left-[calc(50%+20px)] top-5 h-0.5 w-[calc(100%-40px)] transition-colors duration-500',
+                                        isCompleted && 'bg-primary',
+                                        isCurrent && 'bg-gradient-to-r from-primary to-border',
+                                        isUpcoming && 'bg-border',
                                     )}
                                 />
                             )}
