@@ -5,8 +5,6 @@ use App\Http\Controllers\MasterData\DivisionController;
 use App\Http\Controllers\MasterData\EmployeeController;
 use App\Http\Controllers\MasterData\TenantController;
 use App\Http\Controllers\OIDCController;
-use App\Http\Controllers\WhatsAppGateway\NotificationLogController;
-use App\Http\Controllers\WhatsAppGateway\WhatsappSessionController;
 use App\Http\Controllers\WorkManagament\WorkDataController;
 use App\Http\Controllers\WorkManagament\WorkOrderController;
 use Illuminate\Support\Facades\Route;
@@ -56,16 +54,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/{work_order}/verify', [WorkOrderController::class, 'verify'])->name('verify');
     });
 
-    // WhatsApp Gateway
-    Route::prefix('whatsapp')->name('whatsapp.')->group(function () {
-        Route::get('dashboard', [WhatsappSessionController::class, 'index'])->name('dashboard');
-        Route::post('sessions/{session}/connect', [WhatsappSessionController::class, 'connect'])->name('sessions.connect');
-        Route::post('sessions/{session}/qr', [WhatsappSessionController::class, 'qrCode'])->name('sessions.qr');
-        Route::post('sessions/{session}/logout', [WhatsappSessionController::class, 'logout'])->name('sessions.logout');
-        Route::post('sessions/{session}/restart', [WhatsappSessionController::class, 'restart'])->name('sessions.restart');
-        Route::get('notification-logs', [NotificationLogController::class, 'index'])->name('notification-logs');
-        Route::post('notification-logs/{id}/retry', [NotificationLogController::class, 'retry'])->name('notification-logs.retry');
-    });
 });
 
 // Allow guests to start SSO

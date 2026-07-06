@@ -61,7 +61,7 @@ class OIDCController extends Controller
                     'name' => $ssoUser->getName(),
                     'email' => $ssoUser->getEmail(),
                     'password' => null, // SSO user tidak memiliki password lokal
-                    'phone' => $rawData['whatsapp_number'] ?? null,
+                    'phone' => null,
 
                     // Masukkan ID hasil pencarian ke kolom department tabel user
                     'department' => $departmentId,

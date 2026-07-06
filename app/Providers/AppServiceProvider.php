@@ -2,8 +2,6 @@
 
 namespace App\Providers;
 
-use App\Events\WorkOrderCreated;
-use App\Listeners\SendWorkerNotificationToHod;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -31,10 +29,6 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         $this->configureSocialite();
 
-        Event::listen(
-            WorkOrderCreated::class,
-            SendWorkerNotificationToHod::class,
-        );
     }
 
     /**
