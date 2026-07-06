@@ -18,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
+        $middleware->validateCsrfTokens(except: [
+            'settings/whatsapp/config/test-connection',
+            'whatsapp/sessions/*/qr',
+        ]);
+
         $middleware->web(append: [
             HandleAppearance::class,
             HandleInertiaRequests::class,

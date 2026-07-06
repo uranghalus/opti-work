@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\WorkManagament;
 
+use App\Events\WorkOrderCreated;
 use App\Http\Controllers\Controller;
 use App\Models\Department;
 use App\Models\Employee;
@@ -218,6 +219,9 @@ class WorkOrderController extends Controller
 
             return WorkOrder::create($validated);
         });
+
+        WorkOrderCreated::dispatch($workOrder);
+
         // Cari HOD via department
         $dept = Department::where('nama_department', $validated['department_tujuan'])->first();
         $hod = $dept?->hod_user_id ? Employee::find($dept->hod_user_id) : null;

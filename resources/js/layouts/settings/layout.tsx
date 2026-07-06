@@ -26,6 +26,11 @@ const sidebarNavItems: NavItem[] = [
         href: editAppearance(),
         icon: null,
     },
+    {
+        title: 'WhatsApp Gateway',
+        href: '/settings/whatsapp/config',
+        icon: null,
+    },
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
