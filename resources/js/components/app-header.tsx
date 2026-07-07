@@ -17,6 +17,7 @@ import { dashboard } from '@/routes';
 import departments from '@/routes/departments';
 import divisions from '@/routes/divisions';
 import employees from '@/routes/employees';
+import { edit as editProfile } from '@/routes/profile';
 import tenants from '@/routes/tenants';
 import workOrders from '@/routes/work-orders';
 import type { BreadcrumbItem, NavDropdownItem, NavItem } from '@/types';
@@ -62,7 +63,7 @@ const workNavItems: NavDropdownItem[] = [
             { title: 'Tenants', href: tenants.index(), icon: Building2 },
         ],
     },
-    { title: 'Settings', icon: Settings, href: dashboard() },
+    { title: 'Settings', icon: Settings, href: editProfile() },
 ];
 
 const btn = 'transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]';
@@ -93,8 +94,12 @@ function NavDropdown({ item }: { item: NavDropdownItem }) {
     const navClass = 'flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20';
 
     if (!item.children) {
+        const isActive = item.title === 'Settings'
+            ? isCurrentUrl('/settings', undefined, true)
+            : isCurrentUrl(item.href!);
+
         return (
-            <Link href={item.href ?? dashboard()} className={cn(navClass, isCurrentUrl(item.href!) && 'bg-primary/10 text-primary')}>
+            <Link href={item.href ?? dashboard()} className={cn(navClass, isActive && 'bg-primary/10 text-primary')}>
                 {item.icon && <item.icon className="size-4" />}
                 {item.title}
             </Link>
