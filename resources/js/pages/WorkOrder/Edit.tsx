@@ -35,6 +35,7 @@ type WorkOrder = {
     no_work_order: string;
     rincian_pekerjaan: string | null;
     department_tujuan: string | null;
+    id_department: string | null;
     lokasi: string | null;
     tenant_id: string | null;
     priority_type: string | null;
@@ -51,7 +52,7 @@ type PageProps = {
 };
 
 export default function WorkOrderEdit({ workOrder, departments, tenants }: PageProps) {
-    const [selectedDepartment, setSelectedDepartment] = useState(workOrder.department_tujuan || '');
+    const [selectedDepartment, setSelectedDepartment] = useState(workOrder.id_department || workOrder.department_tujuan || '');
     const [locationType, setLocationType] = useState(workOrder.tenant_id ? 'tenant' : 'location');
     const [selectedTenant, setSelectedTenant] = useState(workOrder.tenant_id || '');
     const [priorityType, setPriorityType] = useState(workOrder.priority_type || 'normal');
@@ -164,7 +165,7 @@ export default function WorkOrderEdit({ workOrder, departments, tenants }: PageP
                                         <Combobox
                                             options={departments.map((dept) => ({
                                                 label: dept.nama_department,
-                                                value: dept.nama_department,
+                                                value: dept.id_department,
                                             }))}
                                             value={selectedDepartment}
                                             onChange={(value) => setSelectedDepartment(value)}

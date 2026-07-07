@@ -50,12 +50,18 @@ class Employee extends Model
 
     /**
      * Route notifications for the Evolution WhatsApp channel.
-     *
-     * @return string
      */
-    public function routeNotificationForEvolutionWhatsApp()
+    public function routeNotificationForEvolutionWhatsApp(): ?string
     {
         // Karena di database Anda nomornya disimpan di kolom 'number'
+        return $this->number;
+    }
+
+    /**
+     * Route notifications for the WAHA WhatsApp channel.
+     */
+    public function routeNotificationForWahaWhatsApp(): ?string
+    {
         return $this->number;
     }
 }

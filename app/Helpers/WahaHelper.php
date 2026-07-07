@@ -19,7 +19,7 @@ class WahaHelper
             return null;
         }
 
-        $client = Http::timeout(3);
+        $client = Http::timeout(15);
 
         $apiKey = Setting::get('waha_api_key');
         if (! empty($apiKey)) {
@@ -225,7 +225,15 @@ class WahaHelper
             return false;
         }
 
-        $chatId = str_contains($to, '@') ? $to : $to.'@c.us';
+        if (str_contains($to, '@')) {
+            $chatId = $to;
+        } else {
+            $clean = preg_replace('/\D/', '', $to);
+            if (str_starts_with($clean, '0')) {
+                $clean = '62'.substr($clean, 1);
+            }
+            $chatId = $clean.'@c.us';
+        }
 
         try {
             $response = $client->post('/api/sendText', [
