@@ -1,24 +1,26 @@
 import { Link } from '@inertiajs/react';
-import { Monitor, Shield, User } from 'lucide-react';
+import { Monitor, Shield, User, Link2 } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
+import { edit as editWaha } from '@/routes/waha';
 import type { NavItem } from '@/types';
 
 const sidebarNavItems: NavItem[] = [
     { title: 'Profile', href: edit(), icon: User },
     { title: 'Security', href: editSecurity(), icon: Shield },
     { title: 'Appearance', href: editAppearance(), icon: Monitor },
+    { title: 'WAHA Connection', href: editWaha(), icon: Link2 },
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { isCurrentOrParentUrl } = useCurrentUrl();
 
     return (
-        <div className="mx-auto w-full max-w-4xl space-y-8 px-4 py-8 md:px-6 md:py-10">
+        <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 md:px-6 md:py-10">
             {/* Eyebrow + Heading */}
             <div className="animate-fade-in space-y-3">
                 <span className="inline-block rounded-full border border-primary/20 bg-primary/5 px-3.5 py-1 text-[11px] font-semibold tracking-[0.15em] text-primary uppercase">
