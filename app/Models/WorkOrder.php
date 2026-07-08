@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
@@ -17,6 +19,7 @@ class WorkOrder extends Model
     protected $primaryKey = 'id_work_order';
 
     protected $fillable = [
+        'id_department',
         'no_work_order',
         'tgl_work_order',
         'rincian_pekerjaan',
@@ -76,17 +79,17 @@ class WorkOrder extends Model
 
     // --- RELASI ---
 
-    public function workData()
+    public function workData(): HasOne
     {
         return $this->hasOne(WorkData::class, 'id_work_order', 'id_work_order');
     }
 
-    public function departmentData()
+    public function departmentData(): BelongsTo
     {
-        return $this->belongsTo(Department::class, 'department_tujuan', 'nama_department');
+        return $this->belongsTo(Department::class, 'id_department', 'id_department');
     }
 
-    public function modifier()
+    public function modifier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'modified_user', 'id');
     }

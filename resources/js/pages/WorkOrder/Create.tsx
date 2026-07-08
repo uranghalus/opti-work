@@ -142,7 +142,7 @@ export default function WorkOrderCreate({ departments, tenants }: PageProps) {
                                         <Combobox
                                             options={departments.map((dept) => ({
                                                 label: dept.nama_department,
-                                                value: dept.nama_department,
+                                                value: dept.id_department,
                                             }))}
                                             value={selectedDepartment}
                                             onChange={(value) => setSelectedDepartment(value)}

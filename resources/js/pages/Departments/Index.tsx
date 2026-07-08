@@ -104,6 +104,7 @@ export default function DepartmentIndex({ departments, filters }: PageProps) {
                 .join('')
                 .toUpperCase();
         }
+
         return code.slice(0, 2).toUpperCase();
     };
 
@@ -188,6 +189,7 @@ export default function DepartmentIndex({ departments, filters }: PageProps) {
                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {departments.data.map((dept) => {
                             const initials = getInitials(dept.nama_department, dept.kode_department);
+
                             return (
                                 <div
                                     key={dept.id_department}

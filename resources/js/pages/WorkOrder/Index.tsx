@@ -348,349 +348,227 @@ export default function WorkOrderIndex({ workOrders, filters, departments = [] }
         <>
             <Head title="Work Orders" />
 
-            <div className="mx-auto w-full max-w-7xl space-y-6">
+            <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-6 md:px-0 md:py-8">
                 {/* Page Header */}
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
-                            Work Orders
-                        </h1>
-                        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                            Manage and track all work orders efficiently
-                        </p>
+                <div className="animate-fade-in flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="space-y-3">
+                        <span className="inline-block rounded-full border border-primary/20 bg-primary/5 px-3.5 py-1 text-[11px] font-semibold tracking-[0.15em] text-primary uppercase">
+                            Operations
+                        </span>
+                        <div>
+                            <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+                                Work Orders
+                            </h1>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Manage and track all work orders efficiently
+                            </p>
+                        </div>
                     </div>
                     <Link href={workOrdersCreate()}>
-                        <Button className="gap-2 bg-linear-to-r from-[#0071b7] to-[#0093dd] text-white shadow-md shadow-[#0071b7]/25 transition-all hover:shadow-lg hover:shadow-[#0071b7]/30">
+                        <Button className="group h-11 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:shadow-xl hover:shadow-primary/30 active:scale-[0.97]">
                             <Plus className="size-4" />
                             New Work Order
+                            <span className="ml-1 flex size-5 items-center justify-center rounded-full bg-white/15 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5">
+                                <Plus className="size-3" />
+                            </span>
                         </Button>
                     </Link>
                 </div>
 
-                {/* Stats Cards */}
+                {/* Stats Cards — Double-Bezel */}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <div className="group relative overflow-hidden rounded-2xl border border-neutral-200/60 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
-                        <div className="flex items-start justify-between">
-                            <div className="space-y-3">
-                                <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-                                    Total Orders
-                                </p>
-                                <p className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
-                                    {stats.total}
-                                </p>
-                                <div className="flex items-center gap-1.5">
-                                    <TrendingUp className="size-3.5 text-[#0071b7]" />
-                                    <span className="text-xs font-semibold text-[#0071b7] dark:text-[#0093dd]">
-                                        All time
-                                    </span>
+                    {[
+                        { title: 'Total Orders', value: stats.total, change: 'All time', icon: ClipboardList, color: 'from-primary to-[#0093dd]', changeIcon: TrendingUp, textColor: 'text-primary' },
+                        { title: 'Completed', value: stats.completed, change: 'Done', icon: CheckCircle2, color: 'from-emerald-500 to-teal-400', changeIcon: CheckCircle2, textColor: 'text-emerald-600 dark:text-emerald-400' },
+                        { title: 'In Progress', value: stats.inProgress, change: 'Active', icon: Clock, color: 'from-primary to-[#0093dd]', changeIcon: Clock, textColor: 'text-primary' },
+                        { title: 'Total Budget', value: formatCurrency(stats.totalBudget.toString()), change: 'Allocated', icon: DollarSign, color: 'from-amber-500 to-orange-400', changeIcon: DollarSign, textColor: 'text-amber-600 dark:text-amber-400' },
+                    ].map((stat, i) => (
+                        <div key={stat.title} className={`animate-fade-in animate-delay-${(i + 1) * 100} rounded-[1.5rem] border border-border/30 bg-black/[0.015] p-1.5 dark:bg-white/[0.015]`}>
+                            <div className="group rounded-[calc(1.5rem-0.375rem)] bg-background p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:shadow-md">
+                                <div className="flex items-start justify-between">
+                                    <div className="space-y-2.5">
+                                        <p className="text-xs font-medium text-muted-foreground">{stat.title}</p>
+                                        <p className={`text-3xl font-extrabold tracking-tight ${stat.textColor} ${stat.title === 'Total Budget' ? 'text-2xl' : ''}`}>
+                                            {stat.value}
+                                        </p>
+                                        <div className="flex items-center gap-1.5">
+                                            <stat.changeIcon className="size-3.5 text-muted-foreground" />
+                                            <span className="text-xs font-semibold text-muted-foreground">{stat.change}</span>
+                                        </div>
+                                    </div>
+                                    <div className={`flex size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} text-white shadow-sm transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-110`}>
+                                        <stat.icon className="size-5" />
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex size-12 items-center justify-center rounded-xl bg-linear-to-br from-[#0071b7] to-[#0093dd] shadow-md ring-4 ring-[#0071b7]/10">
-                                <ClipboardList className="size-5 text-white" />
-                            </div>
                         </div>
-                    </div>
-
-                    <div className="group relative overflow-hidden rounded-2xl border border-neutral-200/60 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
-                        <div className="flex items-start justify-between">
-                            <div className="space-y-3">
-                                <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-                                    Completed
-                                </p>
-                                <p className="text-3xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
-                                    {stats.completed}
-                                </p>
-                                <div className="flex items-center gap-1.5">
-                                    <CheckCircle2 className="size-3.5 text-emerald-500" />
-                                    <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                                        Done
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="flex size-12 items-center justify-center rounded-xl bg-linear-to-br from-emerald-500 to-teal-400 shadow-md ring-4 ring-emerald-500/20">
-                                <CheckCircle2 className="size-5 text-white" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="group relative overflow-hidden rounded-2xl border border-neutral-200/60 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
-                        <div className="flex items-start justify-between">
-                            <div className="space-y-3">
-                                <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-                                    In Progress
-                                </p>
-                                <p className="text-3xl font-extrabold tracking-tight text-[#0071b7] dark:text-[#0093dd]">
-                                    {stats.inProgress}
-                                </p>
-                                <div className="flex items-center gap-1.5">
-                                    <Clock className="size-3.5 text-[#0071b7]" />
-                                    <span className="text-xs font-semibold text-[#0071b7] dark:text-[#0093dd]">
-                                        Active
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="flex size-12 items-center justify-center rounded-xl bg-linear-to-br from-[#0071b7] to-[#0093dd] shadow-md ring-4 ring-[#0071b7]/10">
-                                <Clock className="size-5 text-white" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="group relative overflow-hidden rounded-2xl border border-neutral-200/60 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
-                        <div className="flex items-start justify-between">
-                            <div className="space-y-3">
-                                <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-                                    Total Budget
-                                </p>
-                                <p className="text-2xl font-extrabold tracking-tight text-amber-600 dark:text-amber-400">
-                                    {formatCurrency(
-                                        stats.totalBudget.toString(),
-                                    )}
-                                </p>
-                                <div className="flex items-center gap-1.5">
-                                    <DollarSign className="size-3.5 text-amber-500" />
-                                    <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                                        Allocated
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="flex size-12 items-center justify-center rounded-xl bg-linear-to-br from-amber-500 to-orange-400 shadow-md ring-4 ring-amber-500/20">
-                                <DollarSign className="size-5 text-white" />
-                            </div>
-                        </div>
-                    </div>
+                    ))}
                 </div>
 
-                {/* Search & Filter Button */}
-                <div className="rounded-2xl border border-neutral-200/60 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                    <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
-                            <Input
-                                type="text"
-                                placeholder="Search work orders..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                className="h-11 pl-10 transition-all focus-visible:ring-[#0071b7]/50"
-                            />
-                        </div>
-                        <div className="flex gap-2">
-                            <Button
-                                onClick={handleSearch}
-                                className="h-11 bg-linear-to-r from-[#0071b7] to-[#0093dd] text-white shadow-md shadow-[#0071b7]/25 transition-all hover:shadow-lg hover:shadow-[#0071b7]/30"
-                            >
-                                Search
-                            </Button>
-                            <Button
-                                variant={hasActiveFilters ? 'default' : 'outline'}
-                                onClick={() => setShowFilterModal(true)}
-                                className={`h-11 gap-2 transition-all ${hasActiveFilters
-                                    ? 'bg-[#0071b7] text-white shadow-md hover:bg-[#0089cc]'
-                                    : ''
-                                    }`}
-                            >
-                                <SlidersHorizontal className="size-4" />
-                                Filters
-                                {hasActiveFilters && (
-                                    <span className="ml-1 flex size-5 items-center justify-center rounded-full bg-white text-xs font-bold text-[#0071b7]">
-                                        {
-                                            [
-                                                statusFilter,
-                                                priorityFilter,
-                                                departmentFilter,
-                                                priorityTypeFilter,
-                                            ].filter(Boolean).length
-                                        }
+                {/* Search & Filter — Double-Bezel */}
+                <div className="animate-fade-in animate-delay-200 rounded-[1.5rem] border border-border/30 bg-black/[0.015] p-1.5 dark:bg-white/[0.015]">
+                    <div className="rounded-[calc(1.5rem-0.375rem)] bg-background p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/50" />
+                                <div className="rounded-xl border border-border/40 bg-black/[0.015] p-1 dark:bg-white/[0.015]">
+                                    <Input
+                                        type="text"
+                                        placeholder="Search work orders..."
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                        className="rounded-[calc(0.75rem-4px)] border-0 bg-background pl-10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)] transition-all duration-300"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    onClick={handleSearch}
+                                    className="group h-11 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:shadow-lg hover:shadow-primary/30 active:scale-[0.97]"
+                                >
+                                    Search
+                                    <span className="ml-1.5 flex size-5 items-center justify-center rounded-full bg-white/15 transition-all duration-500 group-hover:translate-x-0.5">
+                                        <Search className="size-3" />
                                     </span>
-                                )}
-                            </Button>
+                                </Button>
+                                <Button
+                                    variant={hasActiveFilters ? 'default' : 'outline'}
+                                    onClick={() => setShowFilterModal(true)}
+                                    className={`group h-11 gap-2 rounded-full px-5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                                        hasActiveFilters
+                                            ? 'bg-primary text-primary-foreground shadow-md hover:bg-primary/90'
+                                            : ''
+                                    }`}
+                                >
+                                    <SlidersHorizontal className="size-4" />
+                                    Filters
+                                    {hasActiveFilters && (
+                                        <span className="ml-0.5 flex size-5 items-center justify-center rounded-full bg-white/20 text-xs font-bold text-primary-foreground">
+                                            {[statusFilter, priorityFilter, departmentFilter, priorityTypeFilter].filter(Boolean).length}
+                                        </span>
+                                    )}
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Filter Modal */}
                 <Dialog open={showFilterModal} onOpenChange={setShowFilterModal}>
-                    <DialogContent className="max-w-2xl">
-                        <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2">
-                                <Filter className="size-5 text-[#0071b7]" />
-                                Filter Work Orders
-                            </DialogTitle>
-                            <DialogDescription>
-                                Narrow down work orders by applying filters below
-                            </DialogDescription>
-                        </DialogHeader>
+                    <DialogContent className="max-w-xl rounded-2xl p-0">
+                        <div className="rounded-[calc(1.5rem-0.375rem)] bg-background p-6">
+                            <DialogHeader className="mb-6">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                        <Filter className="size-5" />
+                                    </div>
+                                    <div>
+                                        <DialogTitle className="text-lg font-semibold text-foreground">Filter Work Orders</DialogTitle>
+                                        <DialogDescription className="text-sm text-muted-foreground">Narrow down work orders by applying filters below</DialogDescription>
+                                    </div>
+                                </div>
+                            </DialogHeader>
 
-                        <div className="grid gap-6 py-4">
-                            {/* Status Filter */}
-                            <div className="space-y-2">
-                                <Label className="text-sm font-semibold text-neutral-900 dark:text-white">
-                                    Status
-                                </Label>
-                                <Select
-                                    value={statusFilter}
-                                    onValueChange={(value) =>
-                                        handleFilterChange('status', value)
-                                    }
-                                >
-                                    <SelectTrigger className="h-11">
-                                        <SelectValue placeholder="Select status..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="">All Status</SelectItem>
-                                        <SelectItem value="Pending HOD">Pending HOD</SelectItem>
-                                        <SelectItem value="HOD Approved">HOD Approved</SelectItem>
-                                        <SelectItem value="Scheduled">Scheduled</SelectItem>
-                                        <SelectItem value="Assigned">Assigned</SelectItem>
-                                        <SelectItem value="In Progress">In Progress</SelectItem>
-                                        <SelectItem value="Pending Verification">Pending Verification</SelectItem>
-                                        <SelectItem value="Completed">Completed</SelectItem>
-                                        <SelectItem value="Rejected">Rejected</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                            <div className="grid gap-5">
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-semibold text-foreground">Status</Label>
+                                    <Select value={statusFilter} onValueChange={(v) => handleFilterChange('status', v)}>
+                                        <SelectTrigger className="h-11"><SelectValue placeholder="Select status..." /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="">All Status</SelectItem>
+                                            <SelectItem value="Pending HOD">Pending HOD</SelectItem>
+                                            <SelectItem value="HOD Approved">HOD Approved</SelectItem>
+                                            <SelectItem value="Scheduled">Scheduled</SelectItem>
+                                            <SelectItem value="Assigned">Assigned</SelectItem>
+                                            <SelectItem value="In Progress">In Progress</SelectItem>
+                                            <SelectItem value="Pending Verification">Pending Verification</SelectItem>
+                                            <SelectItem value="Completed">Completed</SelectItem>
+                                            <SelectItem value="Rejected">Rejected</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-semibold text-foreground">Priority Level</Label>
+                                    <Select value={priorityFilter} onValueChange={(v) => handleFilterChange('priority', v)}>
+                                        <SelectTrigger className="h-11"><SelectValue placeholder="Select priority level..." /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="">All Levels</SelectItem>
+                                            <SelectItem value="high">High</SelectItem>
+                                            <SelectItem value="medium">Medium</SelectItem>
+                                            <SelectItem value="low">Low</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-semibold text-foreground">Priority Type</Label>
+                                    <Select value={priorityTypeFilter} onValueChange={(v) => handleFilterChange('priorityType', v)}>
+                                        <SelectTrigger className="h-11"><SelectValue placeholder="Select priority type..." /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="">All Types</SelectItem>
+                                            <SelectItem value="normal">Normal</SelectItem>
+                                            <SelectItem value="urgent">Urgent</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-semibold text-foreground">Department</Label>
+                                    <Select value={departmentFilter} onValueChange={(v) => handleFilterChange('department', v)}>
+                                        <SelectTrigger className="h-11"><SelectValue placeholder="Select department..." /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="">All Departments</SelectItem>
+                                            {departments.map((dept) => (
+                                                <SelectItem key={dept.id_department} value={dept.nama_department}>{dept.nama_department}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
 
-                            {/* Priority Level Filter */}
-                            <div className="space-y-2">
-                                <Label className="text-sm font-semibold text-neutral-900 dark:text-white">
-                                    Priority Level
-                                </Label>
-                                <Select
-                                    value={priorityFilter}
-                                    onValueChange={(value) =>
-                                        handleFilterChange('priority', value)
-                                    }
-                                >
-                                    <SelectTrigger className="h-11">
-                                        <SelectValue placeholder="Select priority level..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="">All Levels</SelectItem>
-                                        <SelectItem value="high">High</SelectItem>
-                                        <SelectItem value="medium">Medium</SelectItem>
-                                        <SelectItem value="low">Low</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Priority Type Filter */}
-                            <div className="space-y-2">
-                                <Label className="text-sm font-semibold text-neutral-900 dark:text-white">
-                                    Priority Type
-                                </Label>
-                                <Select
-                                    value={priorityTypeFilter}
-                                    onValueChange={(value) =>
-                                        handleFilterChange('priorityType', value)
-                                    }
-                                >
-                                    <SelectTrigger className="h-11">
-                                        <SelectValue placeholder="Select priority type..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="">All Types</SelectItem>
-                                        <SelectItem value="normal">Normal</SelectItem>
-                                        <SelectItem value="urgent">Urgent</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Department Filter */}
-                            <div className="space-y-2">
-                                <Label className="text-sm font-semibold text-neutral-900 dark:text-white">
-                                    Department
-                                </Label>
-                                <Select
-                                    value={departmentFilter}
-                                    onValueChange={(value) =>
-                                        handleFilterChange('department', value)
-                                    }
-                                >
-                                    <SelectTrigger className="h-11">
-                                        <SelectValue placeholder="Select department..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="">All Departments</SelectItem>
-                                        {departments.map((dept) => (
-                                            <SelectItem key={dept.id_department} value={dept.nama_department}>
-                                                {dept.nama_department}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                            <DialogFooter className="mt-6 gap-2">
+                                <Button variant="outline" onClick={clearFilters} className="group gap-2 rounded-full px-5">
+                                    <X className="size-4" />
+                                    Clear All
+                                </Button>
+                                <Button onClick={handleSearch} className="group gap-2 rounded-full bg-primary px-6 text-primary-foreground shadow-md active:scale-[0.97]">
+                                    <Filter className="size-4" />
+                                    Apply Filters
+                                    <span className="ml-0.5 flex size-5 items-center justify-center rounded-full bg-white/15 transition-all group-hover:translate-x-0.5"><Filter className="size-3" /></span>
+                                </Button>
+                            </DialogFooter>
                         </div>
-
-                        <DialogFooter className="gap-2">
-                            <Button
-                                variant="outline"
-                                onClick={clearFilters}
-                                className="gap-2"
-                            >
-                                <X className="size-4" />
-                                Clear All
-                            </Button>
-                            <Button
-                                onClick={handleSearch}
-                                className="gap-2 bg-linear-to-r from-[#0071b7] to-[#0093dd] text-white shadow-md"
-                            >
-                                <Filter className="size-4" />
-                                Apply Filters
-                            </Button>
-                        </DialogFooter>
                     </DialogContent>
                 </Dialog>
 
                 {/* Results Count & Sort */}
-                <div className="flex items-center justify-between">
-                    <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                <div className="animate-fade-in animate-delay-200 flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">
                         {workOrders.total > 0 ? (
-                            <>
-                                Showing{' '}
-                                <span className="font-semibold text-neutral-900 dark:text-white">
-                                    {workOrders.from}
-                                </span>{' '}
-                                to{' '}
-                                <span className="font-semibold text-neutral-900 dark:text-white">
-                                    {workOrders.to}
-                                </span>{' '}
-                                of{' '}
-                                <span className="font-semibold text-neutral-900 dark:text-white">
-                                    {workOrders.total}
-                                </span>{' '}
-                                work orders
-                            </>
-                        ) : (
-                            'No work orders found'
-                        )}
+                            <>Showing <span className="font-semibold text-foreground">{workOrders.from}</span> to <span className="font-semibold text-foreground">{workOrders.to}</span> of <span className="font-semibold text-foreground">{workOrders.total}</span> work orders</>
+                        ) : 'No work orders found'}
                     </p>
                     <div className="flex items-center gap-2">
-                        <ArrowUpDown className="size-4 text-neutral-400" />
-                        <span className="text-sm text-neutral-500 dark:text-neutral-400">Sort by:</span>
-                        <select
-                            value={sortBy}
-                            onChange={(e) => handleSortChange(e.target.value as 'date' | 'priority' | 'status' | 'no_work_order')}
-                            className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm transition-all focus:border-[#0071b7] focus:outline-none focus:ring-2 focus:ring-[#0071b7]/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
-                        >
+                        <ArrowUpDown className="size-4 text-muted-foreground/50" />
+                        <span className="text-sm text-muted-foreground">Sort by:</span>
+                        <select value={sortBy} onChange={(e) => handleSortChange(e.target.value as any)}
+                            className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-foreground transition-all duration-300 focus:border-primary focus:ring-2 focus:ring-primary/20">
                             <option value="date">Date</option>
                             <option value="priority">Priority</option>
                             <option value="status">Status</option>
                             <option value="no_work_order">WO Number</option>
                         </select>
-                        <button
-                            onClick={toggleSortDirection}
-                            className="rounded-lg border border-neutral-300 bg-white px-2 py-1.5 text-sm transition-all hover:bg-neutral-50 focus:border-[#0071b7] focus:outline-none focus:ring-2 focus:ring-[#0071b7]/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:hover:bg-neutral-700"
-                            title={sortDirection === 'asc' ? 'Ascending' : 'Descending'}
-                        >
+                        <button onClick={toggleSortDirection}
+                            className="rounded-lg border border-border bg-background px-2 py-1.5 text-sm text-foreground transition-all duration-300 hover:bg-accent focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            title={sortDirection === 'asc' ? 'Ascending' : 'Descending'}>
                             {sortDirection === 'asc' ? '↑ ASC' : '↓ DESC'}
                         </button>
                     </div>
                 </div>
 
-                {/* Work Orders Grid */}
+                {/* Work Orders Grid — Double-Bezel Cards */}
                 {workOrders.data.length > 0 ? (
                     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {workOrders.data.map((wo) => {
+                        {workOrders.data.map((wo, idx) => {
                             const statusConf = getStatusConfig(wo.status_pekerjaan);
                             const priorityConf = getPriorityConfig(wo.prioritas);
                             const StatusIcon = statusConf.icon;
@@ -698,203 +576,165 @@ export default function WorkOrderIndex({ workOrders, filters, departments = [] }
                             return (
                                 <div
                                     key={wo.id_work_order}
-                                    className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-200/50 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
+                                    className={`animate-fade-in animate-delay-${(idx % 8) * 50 + 200} rounded-[1.5rem] border border-border/30 bg-black/[0.015] p-1.5 dark:bg-white/[0.015]`}
                                 >
-                                    {/* Top accent bar based on priority */}
-                                    <div className={`absolute top-0 left-0 h-1 w-full bg-gradient-to-r ${priorityConf.badge}`} />
+                                    <div className="group relative flex flex-col overflow-hidden rounded-[calc(1.5rem-0.375rem)] bg-background shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:shadow-lg active:scale-[0.99]">
+                                        {/* Top accent bar based on priority */}
+                                        <div className={`absolute top-0 left-0 h-1 w-full bg-gradient-to-r ${priorityConf.badge} z-10`} />
 
-                                    <div className="flex flex-1 flex-col p-5">
-                                        {/* Header Section */}
-                                        <div className="mb-4">
-                                            <div className="flex items-start justify-between gap-2">
-                                                <div className="flex-1">
-                                                    <p className="font-mono text-xs font-semibold text-[#0071b7] dark:text-[#0093dd]">
-                                                        {wo.no_work_order}
-                                                    </p>
-                                                    <h3 className="mt-2 line-clamp-2 text-sm font-semibold leading-tight text-neutral-900 dark:text-white">
-                                                        {wo.rincian_pekerjaan || 'No Description'}
-                                                    </h3>
+                                        <div className="flex flex-1 flex-col p-5">
+                                            {/* Header Section */}
+                                            <div className="mb-4">
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div className="flex-1">
+                                                        <p className="font-mono text-xs font-semibold text-primary">
+                                                            {wo.no_work_order}
+                                                        </p>
+                                                        <h3 className="mt-2 line-clamp-2 text-sm font-semibold leading-tight text-foreground">
+                                                            {wo.rincian_pekerjaan || 'No Description'}
+                                                        </h3>
+                                                    </div>
+                                                    <Link
+                                                        href={`/work-orders/${wo.id_work_order}`}
+                                                        className="shrink-0 rounded-lg p-1.5 text-muted-foreground/50 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-accent hover:text-primary"
+                                                    >
+                                                        <Eye className="size-4" />
+                                                    </Link>
                                                 </div>
+                                            </div>
+
+                                            {/* Status & Priority Badges */}
+                                            <div className="mb-4 flex flex-wrap items-center gap-2">
+                                                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition-all ${statusConf.bg}`}>
+                                                    <span className={`size-1.5 rounded-full ${statusConf.dot}`} />
+                                                    {statusConf.label}
+                                                </span>
+                                                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${priorityConf.bg}`}>
+                                                    {priorityConf.label}
+                                                </span>
+                                                {wo.priority_type && (
+                                                    <span className="inline-flex items-center rounded-md bg-accent px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                                        {wo.priority_type}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Divider */}
+                                            <div className="mb-4 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+
+                                            {/* Information Grid */}
+                                            <div className="flex flex-col gap-3 text-sm">
+                                                {wo.tgl_work_order && (
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="flex size-8 items-center justify-center rounded-lg bg-primary/5 text-primary">
+                                                            <Calendar className="size-4" />
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Date</span>
+                                                            <span className="font-medium text-foreground">{formatDate(wo.tgl_work_order)}</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {(wo.department || wo.department_tujuan) && (
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="flex size-8 items-center justify-center rounded-lg bg-purple-500/5 text-purple-600 dark:text-purple-400">
+                                                            <Building2 className="size-4" />
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Department</span>
+                                                            <span className="truncate font-medium text-foreground">{wo.department || wo.department_tujuan}</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {(wo.pic || wo.user_requester) && (
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/5 text-emerald-600 dark:text-emerald-400">
+                                                            <User className="size-4" />
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Requester</span>
+                                                            <span className="truncate font-medium text-foreground">{wo.pic || wo.user_requester}</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {wo.assigned_employees && wo.assigned_employees.length > 0 && (
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="flex size-8 items-center justify-center rounded-lg bg-orange-500/5 text-orange-600 dark:text-orange-400">
+                                                            <User className="size-4" />
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Team</span>
+                                                            <span className="font-medium text-foreground">{wo.assigned_employees.length} member{wo.assigned_employees.length > 1 ? 's' : ''}</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {wo.budget && parseFloat(wo.budget) > 0 && (
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="flex size-8 items-center justify-center rounded-lg bg-amber-500/5 text-amber-600 dark:text-amber-400">
+                                                            <DollarSign className="size-4" />
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Budget</span>
+                                                            <span className="font-semibold text-amber-600 dark:text-amber-400">{formatCurrency(wo.budget)}</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Footer */}
+                                        <div className="border-t border-border/50 bg-accent/30 px-5 py-3">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <div className="flex items-center gap-1.5">
+                                                    <StatusIcon className="size-3.5 text-muted-foreground" />
+                                                    <span className="text-xs font-medium text-muted-foreground">
+                                                        {wo.status_pekerjaan ? wo.status_pekerjaan.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Pending'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-1.5">
+                                                    {wo.status_pekerjaan === 'pending_hod_review' && (
+                                                        <Link href={`/work-orders/${wo.id_work_order}/hod-review`}>
+                                                            <Button size="sm" variant="outline" className="group h-7 rounded-full border-border/60 px-3 text-[11px] font-semibold transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-accent active:scale-[0.95]">
+                                                                Review
+                                                            </Button>
+                                                        </Link>
+                                                    )}
+                                                    {(wo.status_pekerjaan === 'hod_approved' || wo.status_pekerjaan === 'scheduled') && (
+                                                        <Link href={`/work-orders/${wo.id_work_order}/assign`}>
+                                                            <Button size="sm" variant="outline" className="group h-7 rounded-full border-border/60 px-3 text-[11px] font-semibold transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-accent active:scale-[0.95]">
+                                                                Assign
+                                                            </Button>
+                                                        </Link>
+                                                    )}
+                                                    {wo.status_pekerjaan === 'assigned' && (
+                                                        <Link href={`/work-orders/${wo.id_work_order}/submit-results`}>
+                                                            <Button size="sm" variant="outline" className="group h-7 rounded-full border-border/60 px-3 text-[11px] font-semibold transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-accent active:scale-[0.95]">
+                                                                Submit
+                                                            </Button>
+                                                        </Link>
+                                                    )}
+                                                    {wo.status_pekerjaan === 'pending_verification' && (
+                                                        <Link href={`/work-orders/${wo.id_work_order}/verify`}>
+                                                            <Button size="sm" variant="outline" className="group h-7 rounded-full border-border/60 px-3 text-[11px] font-semibold transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-accent active:scale-[0.95]">
+                                                                Verify
+                                                            </Button>
+                                                        </Link>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground/60">
+                                                <span className="flex items-center gap-1">
+                                                    <Clock className="size-3" />
+                                                    Created {new Date(wo.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                </span>
                                                 <Link
                                                     href={`/work-orders/${wo.id_work_order}`}
-                                                    className="shrink-0 rounded-lg p-1.5 text-neutral-400 transition-all hover:bg-neutral-100 hover:text-[#0071b7] dark:hover:bg-neutral-800 dark:hover:text-[#0093dd]"
+                                                    className="group/link flex items-center gap-1 font-medium text-primary transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-primary/70"
                                                 >
-                                                    <Eye className="size-4" />
+                                                    View Details
+                                                    <span className="inline-block transition-transform duration-500 group-hover/link:translate-x-0.5">→</span>
                                                 </Link>
                                             </div>
-                                        </div>
-
-                                        {/* Status & Priority Badges */}
-                                        <div className="mb-4 flex flex-wrap items-center gap-2">
-                                            <span
-                                                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${statusConf.bg}`}
-                                            >
-                                                <span className={`size-2 rounded-full ${statusConf.dot}`} />
-                                                {statusConf.label}
-                                            </span>
-                                            <span
-                                                className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${priorityConf.bg}`}
-                                            >
-                                                {priorityConf.label}
-                                            </span>
-                                            {wo.priority_type && (
-                                                <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
-                                                    {wo.priority_type}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {/* Divider */}
-                                        <div className="mb-4 h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent dark:via-neutral-700" />
-
-                                        {/* Information Grid */}
-                                        <div className="flex flex-col gap-3 text-sm">
-                                            {/* Date */}
-                                            {wo.tgl_work_order && (
-                                                <div className="flex items-center gap-2.5">
-                                                    <div className="flex size-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-500/10">
-                                                        <Calendar className="size-4 text-[#0071b7] dark:text-[#0093dd]" />
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[10px] font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-                                                            Date
-                                                        </span>
-                                                        <span className="font-medium text-neutral-900 dark:text-white">
-                                                            {formatDate(wo.tgl_work_order)}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Department */}
-                                            {(wo.department || wo.department_tujuan) && (
-                                                <div className="flex items-center gap-2.5">
-                                                    <div className="flex size-8 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-500/10">
-                                                        <Building2 className="size-4 text-purple-600 dark:text-purple-400" />
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[10px] font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-                                                            Department
-                                                        </span>
-                                                        <span className="truncate font-medium text-neutral-900 dark:text-white">
-                                                            {wo.department || wo.department_tujuan}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Requester/Assignee */}
-                                            {(wo.pic || wo.user_requester) && (
-                                                <div className="flex items-center gap-2.5">
-                                                    <div className="flex size-8 items-center justify-center rounded-lg bg-green-50 dark:bg-green-500/10">
-                                                        <User className="size-4 text-green-600 dark:text-green-400" />
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[10px] font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-                                                            Requester
-                                                        </span>
-                                                        <span className="truncate font-medium text-neutral-900 dark:text-white">
-                                                            {wo.pic || wo.user_requester}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Assigned Team */}
-                                            {wo.assigned_employees && wo.assigned_employees.length > 0 && (
-                                                <div className="flex items-center gap-2.5">
-                                                    <div className="flex size-8 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-500/10">
-                                                        <User className="size-4 text-orange-600 dark:text-orange-400" />
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[10px] font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-                                                            Team
-                                                        </span>
-                                                        <span className="font-medium text-neutral-900 dark:text-white">
-                                                            {wo.assigned_employees.length} member{wo.assigned_employees.length > 1 ? 's' : ''}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Budget */}
-                                            {wo.budget && parseFloat(wo.budget) > 0 && (
-                                                <div className="flex items-center gap-2.5">
-                                                    <div className="flex size-8 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-500/10">
-                                                        <DollarSign className="size-4 text-amber-600 dark:text-amber-400" />
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[10px] font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-                                                            Budget
-                                                        </span>
-                                                        <span className="font-semibold text-amber-600 dark:text-amber-400">
-                                                            {formatCurrency(wo.budget)}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Footer */}
-                                    <div className="border-t border-neutral-100 bg-neutral-50/50 px-5 py-3 dark:border-neutral-800 dark:bg-neutral-900/50">
-                                        <div className="flex items-center justify-between gap-2">
-                                            {/* Status Badge */}
-                                            <div className="flex items-center gap-1.5">
-                                                <StatusIcon className="size-3.5" />
-                                                <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
-                                                    {wo.status_pekerjaan ? wo.status_pekerjaan.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Pending'}
-                                                </span>
-                                            </div>
-
-                                            {/* Action Button */}
-                                            <div className="flex items-center gap-1.5">
-                                                {wo.status_pekerjaan === 'pending_hod_review' && (
-                                                    <Link href={`/work-orders/${wo.id_work_order}/hod-review`}>
-                                                        <Button size="sm" variant="outline" className="h-7 rounded-lg bg-white text-xs font-medium shadow-sm hover:bg-neutral-50">
-                                                            Review
-                                                        </Button>
-                                                    </Link>
-                                                )}
-                                                {(wo.status_pekerjaan === 'hod_approved' || wo.status_pekerjaan === 'scheduled') && (
-                                                    <Link href={`/work-orders/${wo.id_work_order}/assign`}>
-                                                        <Button size="sm" variant="outline" className="h-7 rounded-lg bg-white text-xs font-medium shadow-sm hover:bg-neutral-50">
-                                                            Assign
-                                                        </Button>
-                                                    </Link>
-                                                )}
-                                                {wo.status_pekerjaan === 'assigned' && (
-                                                    <Link href={`/work-orders/${wo.id_work_order}/submit-results`}>
-                                                        <Button size="sm" variant="outline" className="h-7 rounded-lg bg-white text-xs font-medium shadow-sm hover:bg-neutral-50">
-                                                            Submit
-                                                        </Button>
-                                                    </Link>
-                                                )}
-                                                {wo.status_pekerjaan === 'pending_verification' && (
-                                                    <Link href={`/work-orders/${wo.id_work_order}/verify`}>
-                                                        <Button size="sm" variant="outline" className="h-7 rounded-lg bg-white text-xs font-medium shadow-sm hover:bg-neutral-50">
-                                                            Verify
-                                                        </Button>
-                                                    </Link>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Created Date */}
-                                        <div className="mt-2 flex items-center justify-between text-[11px] text-neutral-400 dark:text-neutral-500">
-                                            <span className="flex items-center gap-1">
-                                                <Clock className="size-3" />
-                                                Created {new Date(wo.created_at).toLocaleDateString('en-US', {
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                })}
-                                            </span>
-                                            <Link
-                                                href={`/work-orders/${wo.id_work_order}`}
-                                                className="font-medium text-[#0071b7] transition-colors hover:text-[#005a94] dark:text-[#0093dd] dark:hover:text-[#0071b7]"
-                                            >
-                                                View Details →
-                                            </Link>
                                         </div>
                                     </div>
                                 </div>
@@ -902,162 +742,100 @@ export default function WorkOrderIndex({ workOrders, filters, departments = [] }
                         })}
                     </div>
                 ) : (
-                    /* Empty State */
-                    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-neutral-50/50 py-16 dark:border-neutral-700 dark:bg-neutral-900/50">
-                        <div className="flex size-16 items-center justify-center rounded-2xl bg-neutral-100 dark:bg-neutral-800">
-                            <ClipboardList className="size-7 text-neutral-400 dark:text-neutral-500" />
-                        </div>
-                        <h3 className="mt-4 text-sm font-semibold text-neutral-900 dark:text-white">
-                            No work orders found
-                        </h3>
-                        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                            {hasActiveFilters
-                                ? 'Try adjusting your filters or search terms.'
-                                : 'No work orders have been created yet.'}
-                        </p>
-                        {hasActiveFilters ? (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="mt-4 gap-1.5"
-                                onClick={clearFilters}
-                            >
-                                <X className="size-3.5" />
-                                Clear filters
-                            </Button>
-                        ) : (
-                            <Link href="/work-orders/create">
-                                <Button size="sm" className="mt-4 gap-1.5">
-                                    <Plus className="size-3.5" />
-                                    Create Work Order
+                    /* Empty State — Double-Bezel */
+                    <div className="animate-fade-in animate-delay-300 rounded-[1.5rem] border border-dashed border-border/50 bg-black/[0.015] p-1.5 dark:bg-white/[0.015]">
+                        <div className="flex flex-col items-center justify-center rounded-[calc(1.5rem-0.375rem)] bg-background py-16 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
+                            <div className="flex size-16 items-center justify-center rounded-2xl bg-accent">
+                                <ClipboardList className="size-7 text-muted-foreground" />
+                            </div>
+                            <h3 className="mt-4 text-sm font-semibold text-foreground">No work orders found</h3>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                {hasActiveFilters ? 'Try adjusting your filters or search terms.' : 'No work orders have been created yet.'}
+                            </p>
+                            {hasActiveFilters ? (
+                                <Button variant="outline" size="sm" className="mt-4 gap-1.5 rounded-full px-5" onClick={clearFilters}>
+                                    <X className="size-3.5" />
+                                    Clear filters
                                 </Button>
-                            </Link>
-                        )}
+                            ) : (
+                                <Link href="/work-orders/create">
+                                    <Button size="sm" className="group mt-4 gap-1.5 rounded-full bg-primary px-5 text-primary-foreground shadow-md active:scale-[0.97]">
+                                        <Plus className="size-3.5" />
+                                        Create Work Order
+                                    </Button>
+                                </Link>
+                            )}
+                        </div>
                     </div>
                 )}
 
-                {/* Pagination */}
+                {/* Pagination — Double-Bezel */}
                 {workOrders.last_page > 1 && (
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-neutral-200/60 bg-white px-6 py-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                    <div className="animate-fade-in animate-delay-500 rounded-[1.5rem] border border-border/30 bg-black/[0.015] p-1.5 dark:bg-white/[0.015]">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-[calc(1.5rem-0.375rem)] bg-background px-6 py-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
+                        <p className="text-sm text-muted-foreground">
                             Showing {workOrders.from || 0} to{' '}
-                            {workOrders.to || 0} of {workOrders.total} results
+                            {workOrders.to || 0} of <span className="font-semibold text-foreground">{workOrders.total}</span> results
                         </p>
                         <div className="flex items-center gap-1">
-                            {/* First Page */}
-                            <button
-                                onClick={() => {
-                                    const params = new URLSearchParams(window.location.search);
-                                    params.set('page', '1');
-                                    router.get(`${workOrdersIndex.url()}?${params.toString()}`, {}, { preserveState: true });
-                                }}
+                            <button onClick={() => {
+ const p = new URLSearchParams(location.search); p.set('page', '1'); router.get(`${workOrdersIndex.url()}?${p.toString()}`, {}, { preserveState: true }); 
+}}
                                 disabled={workOrders.current_page === 1}
-                                className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium text-neutral-700 transition-all hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-                            >
-                                &laquo;
-                            </button>
-
-                            {/* Previous Page */}
-                            <button
-                                onClick={() => {
-                                    const params = new URLSearchParams(window.location.search);
-                                    params.set('page', String(workOrders.current_page - 1));
-                                    router.get(`${workOrdersIndex.url()}?${params.toString()}`, {}, { preserveState: true });
-                                }}
+                                className="flex size-9 items-center justify-center rounded-lg border border-border bg-background text-sm font-medium text-muted-foreground transition-all duration-300 hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40">&laquo;</button>
+                            <button onClick={() => {
+ const p = new URLSearchParams(location.search); p.set('page', String(workOrders.current_page - 1)); router.get(`${workOrdersIndex.url()}?${p.toString()}`, {}, { preserveState: true }); 
+}}
                                 disabled={workOrders.current_page === 1}
-                                className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium text-neutral-700 transition-all hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-                            >
-                                &lsaquo;
-                            </button>
+                                className="flex size-9 items-center justify-center rounded-lg border border-border bg-background text-sm font-medium text-muted-foreground transition-all duration-300 hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40">&lsaquo;</button>
 
-                            {/* Page Numbers with Ellipsis */}
                             {(() => {
-                                const currentPage = workOrders.current_page;
-                                const lastPage = workOrders.last_page;
+                                const cp = workOrders.current_page, lp = workOrders.last_page;
                                 const pages: (number | string)[] = [];
 
-                                if (lastPage <= 7) {
-                                    // Show all pages if 7 or fewer
-                                    for (let i = 1; i <= lastPage; i++) {
-                                        pages.push(i);
-                                    }
-                                } else {
-                                    // Always show first page
+                                if (lp <= 7) {
+ for (let i = 1; i <= lp; i++) {
+pages.push(i);
+} 
+} else {
                                     pages.push(1);
 
-                                    if (currentPage <= 3) {
-                                        // Near start: 1 2 3 4 5 .. last
-                                        pages.push(2, 3, 4, 5, '...', lastPage);
-                                    } else if (currentPage >= lastPage - 2) {
-                                        // Near end: 1 .. last-4 last-3 last-2 last-1 last
-                                        pages.push('...', lastPage - 4, lastPage - 3, lastPage - 2, lastPage - 1, lastPage);
-                                    } else {
-                                        // Middle: 1 .. current-1 current current+1 .. last
-                                        pages.push('...', currentPage - 1, currentPage, currentPage + 1, '...', lastPage);
-                                    }
+                                    if (cp <= 3) {
+pages.push(2, 3, 4, 5, '...', lp);
+} else if (cp >= lp - 2) {
+pages.push('...', lp - 4, lp - 3, lp - 2, lp - 1, lp);
+} else {
+pages.push('...', cp - 1, cp, cp + 1, '...', lp);
+}
                                 }
 
-                                return pages.map((page, index) => {
+                                return pages.map((page, i) => {
                                     if (page === '...') {
-                                        return (
-                                            <span
-                                                key={`ellipsis-${index}`}
-                                                className="px-2 py-1.5 text-sm text-neutral-400 dark:text-neutral-500"
-                                            >
-                                                ...
-                                            </span>
-                                        );
-                                    }
+return <span key={`e-${i}`} className="flex size-9 items-center justify-center text-sm text-muted-foreground/50">...</span>;
+}
 
-                                    const pageNum = page as number;
-                                    const isCurrentPage = pageNum === currentPage;
+                                    const pn = page as number, active = pn === cp;
 
-                                    return (
-                                        <button
-                                            key={pageNum}
-                                            onClick={() => {
-                                                const params = new URLSearchParams(window.location.search);
-                                                params.set('page', String(pageNum));
-                                                router.get(`${workOrdersIndex.url()}?${params.toString()}`, {}, { preserveState: true });
-                                            }}
-                                            className={`min-w-[2.5rem] rounded-lg border px-3 py-1.5 text-sm font-medium transition-all ${isCurrentPage
-                                                ? 'border-[#0071b7] bg-[#0071b7] text-white shadow-md'
-                                                : 'border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700'
-                                                }`}
-                                        >
-                                            {pageNum}
-                                        </button>
-                                    );
+                                    return <button key={pn} onClick={() => {
+ const p = new URLSearchParams(location.search); p.set('page', String(pn)); router.get(`${workOrdersIndex.url()}?${p.toString()}`, {}, { preserveState: true }); 
+}}
+                                        className={`flex size-9 items-center justify-center rounded-lg border text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${active ? 'border-primary bg-primary text-primary-foreground shadow-sm' : 'border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground'}`}>{pn}</button>;
                                 });
                             })()}
 
-                            {/* Next Page */}
-                            <button
-                                onClick={() => {
-                                    const params = new URLSearchParams(window.location.search);
-                                    params.set('page', String(workOrders.current_page + 1));
-                                    router.get(`${workOrdersIndex.url()}?${params.toString()}`, {}, { preserveState: true });
-                                }}
+                            <button onClick={() => {
+ const p = new URLSearchParams(location.search); p.set('page', String(workOrders.current_page + 1)); router.get(`${workOrdersIndex.url()}?${p.toString()}`, {}, { preserveState: true }); 
+}}
                                 disabled={workOrders.current_page === workOrders.last_page}
-                                className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium text-neutral-700 transition-all hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-                            >
-                                &rsaquo;
-                            </button>
-
-                            {/* Last Page */}
-                            <button
-                                onClick={() => {
-                                    const params = new URLSearchParams(window.location.search);
-                                    params.set('page', String(workOrders.last_page));
-                                    router.get(`${workOrdersIndex.url()}?${params.toString()}`, {}, { preserveState: true });
-                                }}
+                                className="flex size-9 items-center justify-center rounded-lg border border-border bg-background text-sm font-medium text-muted-foreground transition-all duration-300 hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40">&rsaquo;</button>
+                            <button onClick={() => {
+ const p = new URLSearchParams(location.search); p.set('page', String(workOrders.last_page)); router.get(`${workOrdersIndex.url()}?${p.toString()}`, {}, { preserveState: true }); 
+}}
                                 disabled={workOrders.current_page === workOrders.last_page}
-                                className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium text-neutral-700 transition-all hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-                            >
-                                &raquo;
-                            </button>
+                                className="flex size-9 items-center justify-center rounded-lg border border-border bg-background text-sm font-medium text-muted-foreground transition-all duration-300 hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40">&raquo;</button>
                         </div>
                     </div>
+                </div>
                 )}
             </div>
         </>

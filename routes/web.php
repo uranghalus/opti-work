@@ -53,6 +53,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/{work_order}/submit-results', [WorkOrderController::class, 'submitResults'])->name('submit-results');
         Route::post('/{work_order}/verify', [WorkOrderController::class, 'verify'])->name('verify');
     });
+
 });
 
 // Allow guests to start SSO

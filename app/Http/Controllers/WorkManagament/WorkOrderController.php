@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\WorkManagament;
 
+use App\Events\WorkOrderCreated;
 use App\Http\Controllers\Controller;
 use App\Models\Department;
 use App\Models\Employee;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class WorkOrderController extends Controller
@@ -58,8 +60,12 @@ class WorkOrderController extends Controller
         // Filter berdasarkan Department
         if ($request->filled('department')) {
             $query->where(function ($q) use ($request) {
-                $q->where('department', 'like', "%{$request->department}%")
-                    ->orWhere('department_tujuan', 'like', "%{$request->department}%");
+                if (Str::isUuid($request->department)) {
+                    $q->where('id_department', $request->department);
+                } else {
+                    $q->where('department', 'like', "%{$request->department}%")
+                        ->orWhere('department_tujuan', 'like', "%{$request->department}%");
+                }
             });
         }
 
@@ -160,7 +166,18 @@ class WorkOrderController extends Controller
         ]);
 
         // 2. Mapping & Logika Lokasi (Penyatuan Tenant/Lokasi)
-        $validated['department_tujuan'] = $validated['department'];
+        $dept = null;
+        if (Str::isUuid($validated['department'])) {
+            $dept = Department::find($validated['department']);
+        } else {
+            $dept = Department::where('nama_department', $validated['department'])
+                ->orWhere('kode_department', $validated['department'])
+                ->first();
+        }
+
+        $validated['id_department'] = $dept?->id_department;
+        $validated['department_tujuan'] = $dept?->nama_department ?? $validated['department'];
+
         if ($request->location_type === 'tenant') {
             $validated['lokasi'] = $request->tenant_name;
             $validated['tenant_id'] = $request->tenant_id;
@@ -218,8 +235,10 @@ class WorkOrderController extends Controller
 
             return WorkOrder::create($validated);
         });
-        // Cari HOD via department
-        $dept = Department::where('nama_department', $validated['department_tujuan'])->first();
+
+        WorkOrderCreated::dispatch($workOrder);
+
+        // Cari HOD via department (sudah ter-resolve sebelumnya)
         $hod = $dept?->hod_user_id ? Employee::find($dept->hod_user_id) : null;
 
         // BUKA KOMENTAR DD DI BAWAH INI UNTUK TESTING JIKA MASIH GAGAL:
@@ -298,8 +317,19 @@ class WorkOrderController extends Controller
             'remove_photos.*' => 'nullable|string',
         ]);
 
-        // Map department to department_tujuan
-        $validated['department_tujuan'] = $validated['department'] ?? $workOrder->department_tujuan;
+        // Resolve department by UUID or name/code
+        if ($request->filled('department')) {
+            $dept = null;
+            if (Str::isUuid($validated['department'])) {
+                $dept = Department::find($validated['department']);
+            } else {
+                $dept = Department::where('nama_department', $validated['department'])
+                    ->orWhere('kode_department', $validated['department'])
+                    ->first();
+            }
+            $validated['id_department'] = $dept?->id_department;
+            $validated['department_tujuan'] = $dept?->nama_department ?? $validated['department'];
+        }
 
         // Handle location mapping
         if ($request->location_type === 'tenant') {

@@ -124,9 +124,11 @@ export default function EmployeeIndex({ employees, filters }: PageProps) {
                 .join('')
                 .toUpperCase();
         }
+
         if (code) {
             return code.slice(0, 2).toUpperCase();
         }
+
         return 'EM';
     };
 
@@ -211,6 +213,7 @@ export default function EmployeeIndex({ employees, filters }: PageProps) {
                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {employees.data.map((dept) => {
                             const initials = getInitials(dept.nama_employee, dept.nik_employee);
+
                             return (
                                 <div
                                     key={dept.id_employee}

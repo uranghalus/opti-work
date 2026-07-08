@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Laravel\Socialite\Socialite;
 use SocialiteProviders\Manager\OAuth2\AbstractProvider as SocialiteOAuth2AbstractProvider;
 
@@ -38,8 +39,11 @@ class OIDCController extends Controller
             // 3. Cari ID Department di database lokal berdasarkan nama
             $departmentId = null;
             if (! empty($ssoDepartmentName)) {
-                // Asumsi nama kolom di tabel tb_department adalah 'nama_department'
-                $localDepartment = Department::where('nama_department', $ssoDepartmentName)->first();
+                if (Str::isUuid($ssoDepartmentName)) {
+                    $localDepartment = Department::find($ssoDepartmentName);
+                } else {
+                    $localDepartment = Department::where('nama_department', $ssoDepartmentName)->first();
+                }
 
                 if ($localDepartment) {
                     $departmentId = $localDepartment->id_department; // Ambil Primary Key-nya
@@ -61,7 +65,7 @@ class OIDCController extends Controller
                     'name' => $ssoUser->getName(),
                     'email' => $ssoUser->getEmail(),
                     'password' => null, // SSO user tidak memiliki password lokal
-                    'phone' => $rawData['whatsapp_number'] ?? null,
+                    'phone' => null,
 
                     // Masukkan ID hasil pencarian ke kolom department tabel user
                     'department' => $departmentId,

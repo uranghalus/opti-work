@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Channels\EvolutionWhatsAppChannel;
+use App\Channels\WahaWhatsAppChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
@@ -21,12 +21,12 @@ class WorkOrderNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return [EvolutionWhatsAppChannel::class];
+        return [WahaWhatsAppChannel::class];
     }
 
     public function toWhatsApp(object $notifiable): array
     {
-        $baseUrl = config('services.evolution.base_url');
+        $baseUrl = rtrim(config('app.url'), '/');
         $detailUrl = "{$baseUrl}/work-orders/{$this->wo->id_work_order}";
 
         $emoji = match ($this->wo->prioritas) {
