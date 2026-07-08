@@ -1,8 +1,11 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Calendar, MapPin, User, Building2, FileText, AlertTriangle, Clock, Edit, Camera, Trash2, Hash, Tag, MessageSquare, Image as ImageIcon, ClipboardCheck, UserCheck, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, User, Building2, FileText, AlertTriangle, Clock, Edit, Camera, Trash2, Hash, Tag, MessageSquare, Image as ImageIcon, ClipboardCheck, UserCheck, CheckCircle2, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/workflow/StatusBadge';
+import { useWorkOrderBroadcast } from '@/hooks/use-work-order-broadcast';
 import { index as workOrdersIndex } from '@/routes/work-orders';
+import { cn } from '@/lib/utils';
 
 type WorkOrder = {
     id_work_order: number;
@@ -62,6 +65,10 @@ function getPriorityConfig(priorityType: string | null, prioritas: string | null
 export default function WorkOrderShow({ workOrder }: PageProps) {
     const { isUrgent, colors } = getPriorityConfig(workOrder.priority_type, workOrder.prioritas);
     const isByAccident = workOrder.urgent_sub_type === 'by_accident';
+    const [isLive, setIsLive] = useState(true);
+
+    // Real-time updates via Reverb
+    useWorkOrderBroadcast(isLive ? workOrder.id_work_order : undefined);
 
     return (
         <>
@@ -74,7 +81,21 @@ export default function WorkOrderShow({ workOrder }: PageProps) {
                         <span className="flex size-7 items-center justify-center rounded-lg bg-accent transition-colors group-hover:bg-primary/10"><ArrowLeft className="size-4" /></span>
                         Back to Work Orders
                     </Link>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setIsLive(!isLive)}
+                            className={cn(
+                                'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]',
+                                isLive
+                                    ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                    : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'
+                            )}
+                        >
+                            <span className={cn('size-1.5 rounded-full', isLive ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400')} />
+                            {isLive ? 'Live' : 'Paused'}
+                            <RefreshCw className={cn('size-3', isLive && 'animate-spin')} />
+                        </button>
+                        <div className="flex items-center gap-2">
                         <Link href={`/work-orders/${workOrder.id_work_order}/edit`}>
                             <Button variant="outline" className="group gap-2 rounded-full px-5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97]">
                                 <Edit className="size-4" />
@@ -90,6 +111,7 @@ router.delete(`/work-orders/${workOrder.id_work_order}`, { preserveScroll: true 
                             <Trash2 className="size-4" />
                             Delete
                         </Button>
+                        </div>
                     </div>
                 </div>
 

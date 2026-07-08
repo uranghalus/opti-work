@@ -18,6 +18,7 @@ class WahaUpdateRequest extends FormRequest
             'waha_session' => ['required', 'string', 'max:255'],
             'waha_url' => ['required', 'url', 'max:255'],
             'waha_api_key' => ['nullable', 'string', 'max:255'],
+            'waha_webhook_url' => ['nullable', 'url', 'max:255'],
         ];
     }
 }

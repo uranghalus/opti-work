@@ -29,4 +29,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('settings/waha/pairing-code', [WahaController::class, 'requestPairingCode'])->name('waha.pairing-code');
     Route::post('settings/waha/logout', [WahaController::class, 'logout'])->name('waha.logout');
     Route::post('settings/waha/restart', [WahaController::class, 'restartSession'])->name('waha.restart');
+    Route::post('settings/waha/test-webhook', [WahaController::class, 'testWebhook'])->name('waha.test-webhook');
+    Route::post('settings/waha/send-test-message', [WahaController::class, 'sendTestMessage'])->name('waha.send-test-message');
 });
