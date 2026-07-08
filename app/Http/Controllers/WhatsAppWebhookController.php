@@ -7,6 +7,7 @@ use App\Helpers\WahaHelper;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\WorkOrder;
+use App\Notifications\AppNotificationService;
 use App\Notifications\WorkOrderProgressNotification;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -51,7 +52,10 @@ class WhatsAppWebhookController extends Controller
             $messageBody = trim($payload['body']);
         }
 
-        if (! empty($payload['payload']['from'])) {
+        // Priority: SenderAlt (real phone) > from > key.remoteJid
+        if (! empty($payload['payload']['_data']['Info']['SenderAlt'])) {
+            $senderId = $payload['payload']['_data']['Info']['SenderAlt'];
+        } elseif (! empty($payload['payload']['from'])) {
             $senderId = $payload['payload']['from'];
         } elseif (! empty($payload['payload']['key']['remoteJid'])) {
             $senderId = $payload['payload']['key']['remoteJid'];
@@ -67,6 +71,7 @@ class WhatsAppWebhookController extends Controller
 
         $phoneNumber = str_replace('@c.us', '', $senderId);
         $phoneNumber = str_replace('@s.whatsapp.net', '', $phoneNumber);
+        $phoneNumber = str_replace('@lid', '', $phoneNumber);
         $phoneNumber = preg_replace('/\D/', '', $phoneNumber);
 
         Log::info("WAHA webhook parsed: from={$phoneNumber}, body={$messageBody}");
@@ -156,6 +161,12 @@ class WhatsAppWebhookController extends Controller
         ]);
 
         WorkOrderStatusChanged::dispatch($workOrder, $previousStatus);
+
+        // Notify requester
+        $requester = Employee::where('nama_employee', $workOrder->user_requester)->first();
+        if ($requester) {
+            AppNotificationService::workOrderStatusChanged($requester, $workOrder, $previousStatus);
+        }
 
         $department = Department::find($workOrder->id_department);
         $employees = Employee::with('position')
@@ -369,6 +380,12 @@ class WhatsAppWebhookController extends Controller
 
         WorkOrderStatusChanged::dispatch($workOrder, $previousStatus);
 
+        // Notify requester
+        $requester = Employee::where('nama_employee', $workOrder->user_requester)->first();
+        if ($requester) {
+            AppNotificationService::workOrderStatusChanged($requester, $workOrder, $previousStatus);
+        }
+
         $this->sendReply($phoneNumber,
             "❌ Work Order {$workOrder->no_work_order} DITOLAK.".PHP_EOL.
             ($reason ? "Alasan: {$reason}" : '')
@@ -420,6 +437,12 @@ class WhatsAppWebhookController extends Controller
         ]);
 
         WorkOrderStatusChanged::dispatch($workOrder, $previousStatus);
+
+        // Notify requester
+        $requester = Employee::where('nama_employee', $workOrder->user_requester)->first();
+        if ($requester) {
+            AppNotificationService::workOrderStatusChanged($requester, $workOrder, $previousStatus);
+        }
 
         $this->sendReply($phoneNumber,
             "📅 Work Order {$workOrder->no_work_order} DIJADWALKAN.".PHP_EOL.

@@ -4,6 +4,7 @@ use App\Http\Controllers\MasterData\DepartmentController;
 use App\Http\Controllers\MasterData\DivisionController;
 use App\Http\Controllers\MasterData\EmployeeController;
 use App\Http\Controllers\MasterData\TenantController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OIDCController;
 use App\Http\Controllers\WorkManagament\WorkDataController;
 use App\Http\Controllers\WorkManagament\WorkOrderController;
@@ -50,9 +51,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/{work_order}/hod-approve', [WorkOrderController::class, 'hodApprove'])->name('hod-approve');
         Route::get('/{work_order}/assign', [WorkOrderController::class, 'assign'])->name('assign');
         Route::post('/{work_order}/assign', [WorkOrderController::class, 'assignEmployees'])->name('assign.store');
-        Route::post('/{work_order}/submit-results', [WorkOrderController::class, 'submitResults'])->name('submit-results');
-        Route::post('/{work_order}/verify', [WorkOrderController::class, 'verify'])->name('verify');
+        Route::get('/{work_order}/submit-results', [WorkOrderController::class, 'showSubmitResults'])->name('submit-results');
+        Route::post('/{work_order}/submit-results', [WorkOrderController::class, 'submitResults'])->name('submit-results.store');
+        Route::get('/{work_order}/verify', [WorkOrderController::class, 'showVerify'])->name('verify');
+        Route::post('/{work_order}/verify', [WorkOrderController::class, 'verify'])->name('verify.store');
     });
+
+    // Notifications
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
 
 });
 

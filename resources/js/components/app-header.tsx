@@ -1,8 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BarChart3, Bell, Briefcase, Building2, CalendarDays, ChevronDown, ClipboardList, FileText, LayoutGrid, Menu, Monitor, Moon, Package, Settings, Sun, Users, Wrench } from 'lucide-react';
+import { BarChart3, Briefcase, Building2, CalendarDays, ChevronDown, ClipboardList, FileText, LayoutGrid, Menu, Monitor, Moon, Package, Settings, Sun, Users, Wrench } from 'lucide-react';
 import { useState } from 'react';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { NotificationBell } from '@/components/notification-bell';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -239,10 +240,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                     <div className="ml-auto flex items-center gap-1">
                         <AppThemeToggle />
 
-                        <Button variant="ghost" size="icon" className={`relative h-9 w-9 cursor-pointer text-muted-foreground hover:text-primary ${btn}`}>
-                            <Bell className="size-5" />
-                            <Badge className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-primary p-0 text-[10px] font-bold text-primary-foreground">3</Badge>
-                        </Button>
+                        <NotificationBell />
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
