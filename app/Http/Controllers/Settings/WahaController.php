@@ -9,6 +9,7 @@ use App\Models\Setting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,6 +30,9 @@ class WahaController extends Controller
             $profile = WahaHelper::getMeProfile();
         }
 
+        $customWebhookUrl = Setting::get('waha_webhook_url', '');
+        $resolvedWebhookUrl = $customWebhookUrl ?: url('/api/whatsapp/webhook');
+
         return Inertia::render('settings/waha', [
             'waha_session' => Setting::get('waha_session', 'default'),
             'waha_url' => Setting::get('waha_url', ''),
@@ -36,6 +40,8 @@ class WahaController extends Controller
             'waha_status' => $status,
             'waha_qr_code' => $qrCode,
             'waha_profile' => $profile,
+            'waha_webhook_url' => $customWebhookUrl,
+            'webhook_url' => $resolvedWebhookUrl,
         ]);
     }
 
@@ -47,6 +53,7 @@ class WahaController extends Controller
         Setting::set('waha_session', $request->validated('waha_session'));
         Setting::set('waha_url', $request->validated('waha_url'));
         Setting::set('waha_api_key', $request->validated('waha_api_key'));
+        Setting::set('waha_webhook_url', $request->validated('waha_webhook_url') ?? '');
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('WAHA connection settings updated.')]);
 
@@ -111,6 +118,118 @@ class WahaController extends Controller
         return response()->json([
             'success' => false,
             'message' => __('Gagal menyalakan sesi WhatsApp.'),
+        ], 400);
+    }
+
+    /**
+     * Test webhook connectivity.
+     * Checks URL format, APP_URL, and DNS resolution.
+     */
+    public function testWebhook(Request $request): JsonResponse
+    {
+        $appUrl = config('app.url');
+        $customUrl = Setting::get('waha_webhook_url', '');
+        $webhookUrl = $customUrl ?: url('/api/whatsapp/webhook');
+        $session = Setting::get('waha_session', 'default');
+
+        $checks = [];
+
+        // Check 1: APP_URL is set
+        $checks[] = [
+            'name' => 'APP_URL config',
+            'status' => ! empty($appUrl),
+            'value' => $appUrl ?: 'KOSONG — set APP_URL di .env',
+        ];
+
+        // Check 2: Webhook URL is valid
+        $parsedUrl = parse_url($webhookUrl);
+        $checks[] = [
+            'name' => 'Webhook URL format',
+            'status' => $parsedUrl !== false && isset($parsedUrl['scheme'], $parsedUrl['host']),
+            'value' => $webhookUrl,
+        ];
+
+        // Check 3: Resolve hostname (DNS)
+        $host = $parsedUrl['host'] ?? '';
+        $dns = gethostbynamel($host);
+        $checks[] = [
+            'name' => 'DNS resolution',
+            'status' => ! empty($dns),
+            'value' => $dns ? implode(', ', $dns) : "Host '{$host}' tidak terresolve — cek APP_URL",
+        ];
+
+        // Check 4: WAHA session status
+        $wahaUrl = Setting::get('waha_url', '');
+        $checks[] = [
+            'name' => 'WAHA server URL',
+            'status' => ! empty($wahaUrl),
+            'value' => $wahaUrl ?: 'Belum dikonfigurasi',
+        ];
+
+        // Check 5: WAHA webhook config recommendation
+        $checks[] = [
+            'name' => 'Env yang harus ada di WAHA',
+            'status' => true,
+            'value' => "WAHA__WEBHOOK__URLS__0={$webhookUrl}\nWAHA__WEBHOOK__EVENTS__0=message\nWAHA__WEBHOOK__EVENTS__1=error",
+        ];
+
+        // Test: coba akses endpoint kita via HTTP (optional, mungkin gagal di dev)
+        $httpStatus = null;
+        $httpOk = false;
+
+        try {
+            $ping = Http::timeout(5)
+                ->get($webhookUrl);
+
+            $httpStatus = $ping->status();
+            $httpOk = $ping->successful();
+        } catch (\Throwable $e) {
+            $httpStatus = 'Error: '.$e->getMessage();
+        }
+
+        $allPassed = collect($checks)->every(fn ($c) => $c['status']);
+
+        return response()->json([
+            'success' => $allPassed,
+            'webhook_url' => $webhookUrl,
+            'app_url' => $appUrl,
+            'http_status' => $httpStatus,
+            'http_reachable' => $httpOk,
+            'session' => $session,
+            'checks' => $checks,
+            'message' => $allPassed
+                ? '✅ Semua check OK. Copy webhook URL ke WAHA server.'
+                : '❌ Ada check yang gagal (lihat daftar).',
+        ]);
+    }
+
+    /**
+     * Send a test WhatsApp message to verify connectivity.
+     */
+    public function sendTestMessage(Request $request): JsonResponse
+    {
+        $request->validate([
+            'phone_number' => ['required', 'string', 'max:20'],
+        ]);
+
+        $phone = $request->input('phone_number');
+        $text = '🔧 *Test Pesan dari WAHA*'.PHP_EOL
+            .'Jika Anda menerima pesan ini, koneksi WAHA berfungsi dengan baik.'.PHP_EOL.PHP_EOL
+            .'Balas dengan perintah berikut untuk menguji webhook:'.PHP_EOL
+            .'SETUJU WO.TEST.001';
+
+        $success = WahaHelper::sendMessage($phone, $text);
+
+        if ($success) {
+            return response()->json([
+                'success' => true,
+                'message' => __('Pesan test berhasil dikirim ke :phone', ['phone' => $phone]),
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => __('Gagal mengirim pesan test. Periksa konfigurasi WAHA.'),
         ], 400);
     }
 }

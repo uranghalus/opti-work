@@ -18,6 +18,7 @@ import {
     SlidersHorizontal,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
+import { useWorkOrderBroadcast } from '@/hooks/use-work-order-broadcast';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -343,6 +344,9 @@ export default function WorkOrderIndex({ workOrders, filters, departments = [] }
 
     const hasActiveFilters =
         search || statusFilter || priorityFilter || departmentFilter || priorityTypeFilter;
+
+    // Real-time updates via Reverb
+    useWorkOrderBroadcast();
 
     return (
         <>

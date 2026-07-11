@@ -8,6 +8,7 @@ use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Tenants;
 use App\Models\WorkOrder;
+use App\Notifications\AppNotificationService;
 use App\Notifications\WorkOrderNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -238,8 +239,12 @@ class WorkOrderController extends Controller
 
         WorkOrderCreated::dispatch($workOrder);
 
-        // Cari HOD via department (sudah ter-resolve sebelumnya)
+        // Create notification for HOD
         $hod = $dept?->hod_user_id ? Employee::find($dept->hod_user_id) : null;
+
+        if ($hod) {
+            AppNotificationService::workOrderCreated($hod, $workOrder);
+        }
 
         // BUKA KOMENTAR DD DI BAWAH INI UNTUK TESTING JIKA MASIH GAGAL:
 
@@ -527,6 +532,16 @@ class WorkOrderController extends Controller
     }
 
     /**
+     * Show form to submit work completion results
+     */
+    public function showSubmitResults(WorkOrder $workOrder)
+    {
+        return Inertia::render('WorkOrder/SubmitResults', [
+            'workOrder' => $workOrder->load('departmentData'),
+        ]);
+    }
+
+    /**
      * Submit work completion results
      */
     public function submitResults(Request $request, WorkOrder $workOrder)
@@ -547,6 +562,16 @@ class WorkOrderController extends Controller
                 'message' => 'Work results submitted successfully',
                 'type' => 'success',
             ]);
+    }
+
+    /**
+     * Show form for HOD to verify work completion
+     */
+    public function showVerify(WorkOrder $workOrder)
+    {
+        return Inertia::render('WorkOrder/Verify', [
+            'workOrder' => $workOrder->load('departmentData'),
+        ]);
     }
 
     /**

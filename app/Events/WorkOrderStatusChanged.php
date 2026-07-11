@@ -9,13 +9,19 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class WorkOrderCreated implements ShouldBroadcast
+class WorkOrderStatusChanged implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public function __construct(
-        public WorkOrder $workOrder
-    ) {}
+    public WorkOrder $workOrder;
+
+    public string $previousStatus;
+
+    public function __construct(WorkOrder $workOrder, string $previousStatus = '')
+    {
+        $this->workOrder = $workOrder;
+        $this->previousStatus = $previousStatus;
+    }
 
     public function broadcastOn(): array
     {
@@ -24,25 +30,18 @@ class WorkOrderCreated implements ShouldBroadcast
         ];
     }
 
-    public function broadcastAs(): string
-    {
-        return 'WorkOrderCreated';
-    }
-
     public function broadcastWith(): array
     {
         return [
             'id' => $this->workOrder->id_work_order,
             'no_work_order' => $this->workOrder->no_work_order,
-            'department_tujuan' => $this->workOrder->department_tujuan,
-            'lokasi' => $this->workOrder->lokasi,
-            'prioritas' => $this->workOrder->prioritas,
-            'priority_type' => $this->workOrder->priority_type,
-            'rincian_pekerjaan' => $this->workOrder->rincian_pekerjaan,
-            'user_requester' => $this->workOrder->user_requester,
             'status_tiket' => $this->workOrder->status_tiket,
             'status_pekerjaan' => $this->workOrder->status_pekerjaan,
-            'created_at' => $this->workOrder->created_at,
+            'assigned_employees' => $this->workOrder->assigned_employees,
+            'personnel_count' => $this->workOrder->personnel_count,
+            'completion_results' => $this->workOrder->completion_results,
+            'updated_at' => $this->workOrder->updated_at,
+            'previous_status' => $this->previousStatus,
         ];
     }
 }
