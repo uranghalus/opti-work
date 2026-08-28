@@ -16,124 +16,85 @@ import {
 } from 'lucide-react';
 import { dashboard } from '@/routes';
 
+type Greeting = {
+    key: 'morning' | 'afternoon' | 'evening' | 'night';
+    first_name: string;
+    local_time: string;
+};
+
 type StatCard = {
     title: string;
-    value: string;
+    value: number;
     change: string;
     changeType: 'positive' | 'negative' | 'neutral';
-    icon: React.ElementType;
+    icon: string;
     sparkData: number[];
 };
 
-const stats: StatCard[] = [
-    {
-        title: 'Active Work Orders',
-        value: '24',
-        change: '+3 this week',
-        changeType: 'positive',
-        icon: ClipboardList,
-        sparkData: [4, 6, 5, 8, 7, 9, 10],
-    },
-    {
-        title: 'Tasks Completed',
-        value: '156',
-        change: '+12% this month',
-        changeType: 'positive',
-        icon: CheckCircle2,
-        sparkData: [3, 5, 4, 7, 6, 8, 9],
-    },
-    {
-        title: 'Pending Approvals',
-        value: '8',
-        change: '3 urgent',
-        changeType: 'negative',
-        icon: Zap,
-        sparkData: [2, 4, 3, 5, 4, 6, 8],
-    },
-    {
-        title: 'Team Members',
-        value: '42',
-        change: '+2 this month',
-        changeType: 'neutral',
-        icon: Users,
-        sparkData: [5, 5, 6, 6, 7, 7, 8],
-    },
-];
+type WeeklyItem = {
+    day: string;
+    value: number;
+};
 
-type RecentActivity = {
-    id: number;
+type DepartmentProgressItem = {
+    name: string;
+    tasks: number;
+    total: number;
+};
+
+type RecentActivityItem = {
+    id: string;
     title: string;
     description: string;
     time: string;
-    icon: React.ElementType;
+    icon: string;
     status: 'completed' | 'in-progress' | 'pending';
+    href: string;
 };
 
-const recentActivities: RecentActivity[] = [
-    {
-        id: 1,
-        title: 'Work Order #WO-2024-089',
-        description: 'Preventive maintenance on Unit A3 completed',
-        time: '2h ago',
-        icon: ClipboardList,
-        status: 'completed',
-    },
-    {
-        id: 2,
-        title: 'Daily Work Report',
-        description: 'Team Alpha submitted daily progress report',
-        time: '3h ago',
-        icon: FileText,
-        status: 'completed',
-    },
-    {
-        id: 3,
-        title: 'Incoming Mail #SM-456',
-        description: 'New correspondence from vendor regarding spare parts',
-        time: '5h ago',
-        icon: MailOpen,
-        status: 'pending',
-    },
-    {
-        id: 4,
-        title: 'Inventory Alert',
-        description: 'Stock level — Bearing SKF 6205 below minimum threshold',
-        time: '6h ago',
-        icon: Package,
-        status: 'in-progress',
-    },
-    {
-        id: 5,
-        title: 'Schedule Published',
-        description: 'Work schedule for next week has been finalized',
-        time: '1d ago',
-        icon: CalendarDays,
-        status: 'completed',
-    },
-];
+type UpcomingScheduleItem = {
+    title: string;
+    time: string;
+    icon: string;
+    color: string;
+};
+
+type PageProps = {
+    greeting: Greeting;
+    stats: Record<string, StatCard>;
+    weekly: WeeklyItem[];
+    departmentProgress: DepartmentProgressItem[];
+    recentActivities: RecentActivityItem[];
+    upcomingSchedule: UpcomingScheduleItem[];
+    pendingApprovals: number;
+    urgentTasks: number;
+    overdueWorkOrders: number;
+};
+
+const iconMap: Record<string, React.ElementType> = {
+    ClipboardList,
+    CheckCircle2,
+    Zap,
+    Users,
+    FileText,
+    MailOpen,
+    Package,
+    CalendarDays,
+    Clock,
+};
+
+const greetingLabels: Record<string, string> = {
+    morning: 'Good morning',
+    afternoon: 'Good afternoon',
+    evening: 'Good evening',
+    night: 'Good night',
+};
 
 const quickActions = [
     { title: 'New Work Order', description: 'Create work order', icon: ClipboardList },
     { title: 'Daily Report', description: 'Submit report', icon: FileText },
     { title: 'Send Mail', description: 'Outgoing mail', icon: Mail },
     { title: 'Work Planning', description: 'Plan tasks', icon: TrendingUp },
-];
-
-const weeklyData = [
-    { day: 'Mon', value: 12 },
-    { day: 'Tue', value: 18 },
-    { day: 'Wed', value: 15 },
-    { day: 'Thu', value: 20 },
-    { day: 'Fri', value: 17 },
-    { day: 'Sat', value: 8 },
-    { day: 'Sun', value: 4 },
-];
-
-const departmentProgress = [
-    { name: 'Maintenance', tasks: 18, total: 24 },
-    { name: 'Operations', tasks: 32, total: 40 },
-    { name: 'Logistics', tasks: 12, total: 20 },
-    { name: 'Administration', tasks: 8, total: 12 },
 ];
 
 const statusConfig = {
@@ -157,12 +118,6 @@ const statusConfig = {
     },
 };
 
-const scheduleEvents = [
-    { title: 'Team Meeting', time: 'Today, 14:00', icon: CalendarDays, color: 'from-primary to-[#0093dd]' },
-    { title: 'Maintenance Review', time: 'Tomorrow, 09:00', icon: Clock, color: 'from-amber-500 to-orange-400' },
-    { title: 'Safety Inspection', time: 'Friday, 08:00', icon: CheckCircle2, color: 'from-emerald-500 to-teal-400' },
-];
-
 function Sparkline({ data, color }: { data: number[]; color: string }) {
     const max = Math.max(...data);
     const min = Math.min(...data);
@@ -185,7 +140,20 @@ function Sparkline({ data, color }: { data: number[]; color: string }) {
     );
 }
 
-export default function Dashboard() {
+export default function Dashboard({
+    greeting,
+    stats,
+    weekly,
+    departmentProgress,
+    recentActivities,
+    upcomingSchedule,
+    pendingApprovals,
+    urgentTasks,
+    overdueWorkOrders,
+}: PageProps) {
+    const greetingText = `${greetingLabels[greeting.key] ?? 'Good morning'}, ${greeting.first_name}!`;
+    const statsArr = Object.values(stats);
+
     return (
         <div className="w-full space-y-8">
             {/* ---- Hero - Double-Bezel ---- */}
@@ -206,28 +174,27 @@ export default function Dashboard() {
                             </span>
                             <div>
                                 <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
-                                    Good morning, Admin!
+                                    {greetingText}
                                 </h1>
                                 <p className="mt-1.5 text-sm text-white/75">
                                     You have{' '}
-                                    <span className="font-semibold text-white">8 pending approvals</span> and{' '}
-                                    <span className="font-semibold text-white">3 urgent tasks</span> today.
+                                    <span className="font-semibold text-white">{pendingApprovals} pending approvals</span> and{' '}
+                                    <span className="font-semibold text-white">{urgentTasks} urgent tasks</span> today.{' '}
+                                    <span className="font-semibold text-white">{overdueWorkOrders} overdue work orders</span>.
                                 </p>
                             </div>
                         </div>
 
                         <div className="flex flex-wrap gap-2 sm:gap-3">
-                            {[
-                                { value: '24', label: 'Active' },
-                                { value: '156', label: 'Done' },
-                                { value: '98%', label: 'Rate' },
-                            ].map((item) => (
+                            {statsArr.slice(0, 3).map((stat) => (
                                 <div
-                                    key={item.label}
+                                    key={stat.title}
                                     className="flex-1 min-w-[70px] rounded-xl border border-white/10 bg-white/10 px-3 py-2.5 text-center backdrop-blur-md transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-white/20 sm:flex-initial sm:px-4 sm:py-3"
                                 >
-                                    <p className="text-lg font-bold text-white md:text-2xl">{item.value}</p>
-                                    <p className="text-[10px] font-semibold tracking-[0.1em] text-white/60 uppercase">{item.label}</p>
+                                    <p className="text-lg font-bold text-white md:text-2xl">{stat.value}</p>
+                                    <p className="text-[10px] font-semibold tracking-[0.1em] text-white/60 uppercase">
+                                        {stat.title === 'Tasks Completed' ? 'Done' : stat.title === 'Team Members' ? 'Team' : stat.title === 'Pending Approvals' ? 'Pending' : stat.title === 'Active Work Orders' ? 'Active' : stat.title}
+                                    </p>
                                 </div>
                             ))}
                         </div>
@@ -237,39 +204,43 @@ export default function Dashboard() {
 
             {/* ---- Stats Grid — Asymmetrical Bento ---- */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {stats.map((stat, i) => (
-                    <div
-                        key={stat.title}
-                        className={`animate-fade-in animate-delay-${(i + 1) * 100} rounded-[1.5rem] border border-border/30 bg-black/[0.015] p-1.5 dark:bg-white/[0.015]`}
-                    >
-                        <div className="group rounded-[calc(1.5rem-0.375rem)] bg-background p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:shadow-md">
-                            <div className="flex items-start justify-between">
-                                <div className="space-y-2.5">
-                                    <p className="text-xs font-medium text-muted-foreground">{stat.title}</p>
-                                    <p className="text-3xl font-extrabold tracking-tight text-foreground">{stat.value}</p>
-                                    <div className="flex items-center gap-1.5">
-                                        <span className={`text-xs font-semibold ${
-                                            stat.changeType === 'positive' ? 'text-emerald-600 dark:text-emerald-400' :
-                                            stat.changeType === 'negative' ? 'text-amber-600 dark:text-amber-400' :
-                                            'text-muted-foreground'
-                                        }`}>
-                                            {stat.change}
-                                        </span>
+                {statsArr.map((stat, i) => {
+                    const Icon = iconMap[stat.icon] ?? ClipboardList;
+
+                    return (
+                        <div
+                            key={stat.title}
+                            className={`animate-fade-in animate-delay-${(i + 1) * 100} rounded-[1.5rem] border border-border/30 bg-black/[0.015] p-1.5 dark:bg-white/[0.015]`}
+                        >
+                            <div className="group rounded-[calc(1.5rem-0.375rem)] bg-background p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:shadow-md">
+                                <div className="flex items-start justify-between">
+                                    <div className="space-y-2.5">
+                                        <p className="text-xs font-medium text-muted-foreground">{stat.title}</p>
+                                        <p className="text-3xl font-extrabold tracking-tight text-foreground">{stat.value}</p>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className={`text-xs font-semibold ${
+                                                stat.changeType === 'positive' ? 'text-emerald-600 dark:text-emerald-400' :
+                                                stat.changeType === 'negative' ? 'text-amber-600 dark:text-amber-400' :
+                                                'text-muted-foreground'
+                                            }`}>
+                                                {stat.change}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground">
+                                        <Icon className="size-5" />
                                     </div>
                                 </div>
-                                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground">
-                                    <stat.icon className="size-5" />
+                                <div className="mt-3.5 opacity-40">
+                                    <Sparkline data={stat.sparkData} color={
+                                        stat.changeType === 'positive' ? 'text-emerald-400' :
+                                        stat.changeType === 'negative' ? 'text-amber-400' : 'text-primary'
+                                    } />
                                 </div>
                             </div>
-                            <div className="mt-3.5 opacity-40">
-                                <Sparkline data={stat.sparkData} color={
-                                    stat.changeType === 'positive' ? 'text-emerald-400' :
-                                    stat.changeType === 'negative' ? 'text-amber-400' : 'text-primary'
-                                } />
-                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* ---- Main Grid — Asymmetrical Bento ---- */}
@@ -299,19 +270,23 @@ export default function Dashboard() {
                             </div>
                             <div className="overflow-x-auto pb-2 -mx-1 px-1">
                                 <div className="flex items-end justify-between gap-2 min-w-[350px] sm:min-w-0">
-                                    {weeklyData.map((d) => (
-                                        <div key={d.day} className="flex flex-1 flex-col items-center gap-2">
-                                            <span className="text-xs font-semibold text-foreground/70">{d.value}</span>
-                                            <div className="relative flex w-full items-end justify-center" style={{ height: 96 }}>
-                                                <div
-                                                    className="absolute bottom-0 w-full rounded-lg bg-gradient-to-t from-primary to-[#0093dd] transition-all duration-1000 ease-[cubic-bezier(0.32,0.72,0,1)]"
-                                                    style={{ height: `${(d.value / 20) * 100}%`, maxHeight: '100%' }}
-                                                />
-                                                <div className="absolute bottom-0 h-full w-full rounded-lg bg-border/30" />
+                                    {weekly.map((d) => {
+                                        const maxVal = Math.max(...weekly.map((w) => w.value), 1);
+
+                                        return (
+                                            <div key={d.day} className="flex flex-1 flex-col items-center gap-2">
+                                                <span className="text-xs font-semibold text-foreground/70">{d.value}</span>
+                                                <div className="relative flex w-full items-end justify-center" style={{ height: 96 }}>
+                                                    <div
+                                                        className="absolute bottom-0 w-full rounded-lg bg-gradient-to-t from-primary to-[#0093dd] transition-all duration-1000 ease-[cubic-bezier(0.32,0.72,0,1)]"
+                                                        style={{ height: `${(d.value / maxVal) * 100}%`, maxHeight: '100%' }}
+                                                    />
+                                                    <div className="absolute bottom-0 h-full w-full rounded-lg bg-border/30" />
+                                                </div>
+                                                <span className="text-[10px] font-medium text-muted-foreground/60">{d.day}</span>
                                             </div>
-                                            <span className="text-[10px] font-medium text-muted-foreground/60">{d.day}</span>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
@@ -333,6 +308,7 @@ export default function Dashboard() {
                             <div className="space-y-1">
                                 {recentActivities.map((activity, index) => {
                                     const config = statusConfig[activity.status];
+                                    const Icon = iconMap[activity.icon] ?? ClipboardList;
 
                                     return (
                                         <div
@@ -343,7 +319,7 @@ export default function Dashboard() {
                                                 <div className="absolute left-[2.1rem] top-12 h-[calc(100%-1.5rem)] w-px bg-border" />
                                             )}
                                             <div className={`relative z-10 flex size-[26px] shrink-0 items-center justify-center rounded-lg ${config.iconBg}`}>
-                                                <activity.icon className="size-3.5" />
+                                                <Icon className="size-3.5" />
                                             </div>
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-2">
@@ -416,21 +392,25 @@ export default function Dashboard() {
                         <div className="rounded-[calc(1.5rem-0.375rem)] bg-background p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)] md:p-6">
                             <h2 className="mb-4 text-base font-semibold text-foreground">Upcoming Schedule</h2>
                             <div className="space-y-2">
-                                {scheduleEvents.map((event) => (
-                                    <div
-                                        key={event.title}
-                                        className="group flex items-center gap-3 rounded-xl bg-accent/30 p-3 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-accent/60"
-                                    >
-                                        <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${event.color} text-white shadow-sm transition-transform duration-500 group-hover:scale-105`}>
-                                            <event.icon className="size-4" />
+                                {upcomingSchedule.map((event) => {
+                                    const Icon = iconMap[event.icon] ?? CalendarDays;
+
+                                    return (
+                                        <div
+                                            key={event.title}
+                                            className="group flex items-center gap-3 rounded-xl bg-accent/30 p-3 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-accent/60"
+                                        >
+                                            <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${event.color} text-white shadow-sm transition-transform duration-500 group-hover:scale-105`}>
+                                                <Icon className="size-4" />
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-xs font-semibold text-foreground">{event.title}</p>
+                                                <p className="text-[10px] text-muted-foreground">{event.time}</p>
+                                            </div>
+                                            <ChevronRight className="size-3.5 shrink-0 text-muted-foreground/40 transition-all duration-500 group-hover:translate-x-0.5 group-hover:text-foreground/60" />
                                         </div>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="truncate text-xs font-semibold text-foreground">{event.title}</p>
-                                            <p className="text-[10px] text-muted-foreground">{event.time}</p>
-                                        </div>
-                                        <ChevronRight className="size-3.5 shrink-0 text-muted-foreground/40 transition-all duration-500 group-hover:translate-x-0.5 group-hover:text-foreground/60" />
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>

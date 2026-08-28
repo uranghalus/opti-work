@@ -181,7 +181,7 @@ class WorkOrderController extends Controller
 
         if ($request->location_type === 'tenant') {
             $validated['lokasi'] = $request->tenant_name;
-            $validated['tenant_id'] = $request->tenant_id;
+            $validated['tenant_id'] = (string) $request->tenant_id;
         } else {
             $validated['lokasi'] = $request->lokasi;
         }
@@ -238,6 +238,9 @@ class WorkOrderController extends Controller
         });
 
         WorkOrderCreated::dispatch($workOrder);
+
+        // Calculate deadline based on priority type
+        $workOrder->calculateDeadline();
 
         // Create notification for HOD
         $hod = $dept?->hod_user_id ? Employee::find($dept->hod_user_id) : null;
@@ -521,8 +524,12 @@ class WorkOrderController extends Controller
             'assigned_employees' => $validated['assigned_employees'],
             'personnel_count' => $validated['personnel_count'],
             'status_pekerjaan' => 'assigned',
+            'scheduled_date' => $workOrder->scheduled_date ?? now()->toDateString(),
             'keterangan' => $validated['assignment_notes'] ?? $workOrder->keterangan,
         ]);
+
+        // Recalculate deadline from assignment date
+        $workOrder->calculateDeadline();
 
         return redirect()->route('work-orders.show', $workOrder->id_work_order)
             ->with('flash', [

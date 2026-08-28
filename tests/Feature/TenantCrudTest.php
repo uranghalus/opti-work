@@ -20,7 +20,9 @@ class TenantCrudTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = User::factory()->create();
+        $this->user = User::factory()->superAdmin()->create();
+        $this->user->update(['tenant_id' => null]);
+        Tenants::withTrashed()->forceDelete();
         Storage::fake('s3');
     }
 

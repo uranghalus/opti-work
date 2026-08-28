@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class WorkData extends Model
 {
-    use HasFactory;
+    use HasFactory, TenantAware;
 
     protected $table = 'tb_work_data';
 
@@ -31,6 +32,7 @@ class WorkData extends Model
         'create_id_user',
         'modified_id_user',
         'status_hapus',
+        'tenant_id',
     ];
 
     protected $casts = [
@@ -42,5 +44,15 @@ class WorkData extends Model
     public function department()
     {
         return $this->belongsTo(Department::class, 'id_department', 'id_department');
+    }
+
+    public function pekerja()
+    {
+        return $this->hasMany(WorkDataPekerja::class, 'id_work_data', 'id_work_data');
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(ScheduleWorkData::class, 'id_work_data', 'id_work_data');
     }
 }

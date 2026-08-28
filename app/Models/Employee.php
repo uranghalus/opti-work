@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,7 @@ use Illuminate\Notifications\Notifiable;
 
 class Employee extends Model
 {
-    use HasFactory, HasUuids, Notifiable;
+    use HasFactory, HasUuids, Notifiable, TenantAware;
 
     protected $table = 'tb_employee';
 
@@ -31,6 +32,7 @@ class Employee extends Model
         'id_division',
         'id_position',
         'last_login_ip',
+        'tenant_id',
     ];
 
     public function department(): BelongsTo

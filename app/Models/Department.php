@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Department extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, TenantAware;
 
     protected $table = 'tb_department';
 
@@ -25,6 +26,7 @@ class Department extends Model
         'nama_department',
         'hod_user_id',
         'manager_user_id',
+        'tenant_id',
     ];
 
     public function users(): HasMany

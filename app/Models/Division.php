@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Division extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, TenantAware;
 
     protected $table = 'tb_division';
 
@@ -24,6 +25,7 @@ class Division extends Model
         'kode_division',
         'nama_division',
         'id_department',
+        'tenant_id',
     ];
 
     public function department(): BelongsTo

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\Settings\RoleController;
 use App\Http\Controllers\Settings\SecurityController;
 use App\Http\Controllers\Settings\WahaController;
 use Illuminate\Support\Facades\Route;
@@ -31,4 +32,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('settings/waha/restart', [WahaController::class, 'restartSession'])->name('waha.restart');
     Route::post('settings/waha/test-webhook', [WahaController::class, 'testWebhook'])->name('waha.test-webhook');
     Route::post('settings/waha/send-test-message', [WahaController::class, 'sendTestMessage'])->name('waha.send-test-message');
+
+    // RBAC - Role Management — Super Admin only
+    Route::get('settings/roles', [RoleController::class, 'index'])
+        ->middleware('permission:rbac.manage')
+        ->name('roles.index');
+    Route::post('settings/roles', [RoleController::class, 'store'])
+        ->middleware('permission:rbac.manage')
+        ->name('roles.store');
+    Route::put('settings/roles/{role}', [RoleController::class, 'update'])
+        ->middleware('permission:rbac.manage')
+        ->name('roles.update');
+    Route::delete('settings/roles/{role}', [RoleController::class, 'destroy'])
+        ->middleware('permission:rbac.manage')
+        ->name('roles.destroy');
 });

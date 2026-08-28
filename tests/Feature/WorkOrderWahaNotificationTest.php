@@ -21,7 +21,8 @@ class WorkOrderWahaNotificationTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = User::factory()->create();
+        $this->user = User::factory()->create(['tenant_id' => 1]);
+        $this->actingAs($this->user);
 
         // Konfigurasi WAHA Settings
         Setting::set('waha_url', 'http://localhost:3000');

@@ -20,7 +20,7 @@ class DivisionSyncTest extends TestCase
         parent::setUp();
 
         config(['services.optigate_portal.url' => 'https://optigate.test']);
-        $this->user = User::factory()->create();
+        $this->user = User::factory()->superAdmin()->create();
     }
 
     public function test_guests_cannot_access_divisions_index(): void

@@ -24,6 +24,11 @@ type WorkOrder = {
     keterangan: string | null;
     incident_photos_urls: string[];
     scheduled_date: string | null;
+    deadline_date: string | null;
+    extend_count: number;
+    escalation_h3_sent_at: string | null;
+    escalation_h5_sent_at: string | null;
+    escalation_h6_sent_at: string | null;
     assigned_employees: Array<{ id: number; name: string }> | null;
     personnel_count: number | null;
     completion_results: string | null;
@@ -47,6 +52,12 @@ return '-';
 }
 
     return new Date(date).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function deadlineLabel(date: string | null): string {
+    if (!date) return '-';
+    const days = Math.ceil((new Date(`${date}T00:00:00`).getTime() - new Date(new Date().toDateString()).getTime()) / 86400000);
+    return days < 0 ? `${Math.abs(days)} days overdue` : days === 0 ? 'Due today' : `${days} days remaining`;
 }
 
 function getPriorityConfig(priorityType: string | null, prioritas: string | null) {
@@ -96,6 +107,11 @@ export default function WorkOrderShow({ workOrder }: PageProps) {
                             <RefreshCw className={cn('size-3', isLive && 'animate-spin')} />
                         </button>
                         <div className="flex items-center gap-2">
+                        {workOrder.status_pekerjaan !== 'completed' && workOrder.status_pekerjaan !== 'rejected' && workOrder.status_pekerjaan !== 'Selesai' && workOrder.status_pekerjaan !== 'Dibatalkan' && (workOrder.extend_count || 0) < 3 && (
+                            <Link href={`/work-orders/${workOrder.id_work_order}/extend`}>
+                                <Button variant="outline" className="gap-2 rounded-full px-5"><Clock className="size-4" />Request Extend</Button>
+                            </Link>
+                        )}
                         <Link href={`/work-orders/${workOrder.id_work_order}/edit`}>
                             <Button variant="outline" className="group gap-2 rounded-full px-5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97]">
                                 <Edit className="size-4" />
@@ -418,6 +434,23 @@ router.delete(`/work-orders/${workOrder.id_work_order}`, { preserveScroll: true 
                                         </div>
                                     </div>
                                     <div className="rounded-xl border border-border/40 bg-accent/30 p-4"><p className="text-sm font-semibold text-foreground">{formatDate(workOrder.scheduled_date)}</p></div>
+                                </div>
+                            </div>
+                        )}
+
+                        {workOrder.deadline_date && (
+                            <div className="animate-fade-in animate-delay-500 rounded-[1.5rem] border border-border/30 bg-black/[0.015] p-1.5 dark:bg-white/[0.015]">
+                                <div className="rounded-[calc(1.5rem-0.375rem)] bg-background p-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
+                                    <div className="mb-5 flex items-center gap-3">
+                                        <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-sm"><Clock className="size-5 text-white" /></div>
+                                        <div><h2 className="text-sm font-semibold text-foreground">Deadline</h2><p className="text-xs text-muted-foreground">{deadlineLabel(workOrder.deadline_date)}</p></div>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">Due {formatDate(workOrder.deadline_date)}</span>
+                                        {workOrder.escalation_h3_sent_at && <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-800">H+3</span>}
+                                        {workOrder.escalation_h5_sent_at && <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-800">H+5</span>}
+                                        {workOrder.escalation_h6_sent_at && <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-800">H+6 Escalated</span>}
+                                    </div>
                                 </div>
                             </div>
                         )}

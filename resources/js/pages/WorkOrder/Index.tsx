@@ -62,6 +62,10 @@ type WorkOrder = {
     pic: string | null;
     hod_action: string | null;
     scheduled_date: string | null;
+    deadline_date: string | null;
+    escalation_h3_sent_at: string | null;
+    escalation_h5_sent_at: string | null;
+    escalation_h6_sent_at: string | null;
     assigned_employees: Array<{ id: number; name: string }> | null;
     personnel_count: number | null;
     completion_results: string | null;
@@ -207,6 +211,12 @@ function formatDate(date: string | null): string {
         month: 'short',
         day: 'numeric',
     });
+}
+
+function deadlineLabel(date: string | null): string | null {
+    if (!date) return null;
+    const days = Math.ceil((new Date(`${date}T00:00:00`).getTime() - new Date(new Date().toDateString()).getTime()) / 86400000);
+    return days < 0 ? `${Math.abs(days)} days overdue` : days === 0 ? 'Due today' : `${days} days remaining`;
 }
 
 export default function WorkOrderIndex({ workOrders, filters, departments = [] }: PageProps) {
@@ -622,6 +632,13 @@ export default function WorkOrderIndex({ workOrders, filters, departments = [] }
                                                     </span>
                                                 )}
                                             </div>
+
+                                            {wo.deadline_date && (
+                                                <div className={`mb-4 rounded-lg px-3 py-2 text-xs font-semibold ${new Date(wo.deadline_date) < new Date(new Date().toDateString()) ? 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400' : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'}`}>
+                                                    Deadline: {formatDate(wo.deadline_date)} ({deadlineLabel(wo.deadline_date)})
+                                                    {wo.escalation_h6_sent_at ? ' · H+6' : wo.escalation_h5_sent_at ? ' · H+5' : wo.escalation_h3_sent_at ? ' · H+3' : ''}
+                                                </div>
+                                            )}
 
                                             {/* Divider */}
                                             <div className="mb-4 h-px bg-gradient-to-r from-transparent via-border to-transparent" />

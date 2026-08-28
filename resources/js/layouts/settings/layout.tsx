@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Monitor, Shield, User, Link2 } from 'lucide-react';
+import { Monitor, Shield, User, Link2, Users } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn } from '@/lib/utils';
@@ -7,6 +7,7 @@ import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import { edit as editWaha } from '@/routes/waha';
+import { index as editRoles } from '@/routes/roles';
 import type { NavItem } from '@/types';
 
 const sidebarNavItems: NavItem[] = [
@@ -14,6 +15,7 @@ const sidebarNavItems: NavItem[] = [
     { title: 'Security', href: editSecurity(), icon: Shield },
     { title: 'Appearance', href: editAppearance(), icon: Monitor },
     { title: 'WAHA Connection', href: editWaha(), icon: Link2 },
+    { title: 'Roles & Permissions', href: editRoles(), icon: Users },
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
