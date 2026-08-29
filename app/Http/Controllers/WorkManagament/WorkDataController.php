@@ -42,7 +42,7 @@ class WorkDataController extends Controller
         }
 
         // Get work data with pagination
-        $workData = $query->latest('tanggal_work_data')->paginate(15)->withQueryString();
+        $workData = $query->latest('tgl_rencana_mulai')->paginate(15)->withQueryString();
 
         return Inertia::render('WorkData/Index', [
             'workData' => $workData,
@@ -69,16 +69,16 @@ class WorkDataController extends Controller
     {
         $validated = $request->validate([
             'no_kerja' => 'required|string|max:50|unique:tb_work_data,no_kerja',
-            'tanggal_work_data' => 'nullable|date',
+            'tgl_rencana_mulai' => 'nullable|date',
+            'tgl_rencana_selesai' => 'nullable|date',
             'id_department' => 'nullable|integer',
-            'deskripsi' => 'nullable|string',
-            'kode_inventory' => 'nullable|string|max:50',
-            'nama_tenant' => 'nullable|string|max:255',
             'work_department' => 'nullable|string|max:255',
+            'deskripsi' => 'nullable|string',
+            'nama_tenant' => 'nullable|string|max:255',
         ]);
 
         $validated['create_id_user'] = Auth::id();
-        $validated['status_pekerjaan'] = 'draft';
+        $validated['status_pekerjaan'] = 'Planned';
         $validated['status_hapus'] = '0';
 
         WorkData::create($validated);
@@ -118,16 +118,16 @@ class WorkDataController extends Controller
     public function update(Request $request, WorkData $workData)
     {
         $validated = $request->validate([
-            'tanggal_work_data' => 'nullable|date',
+            'tgl_rencana_mulai' => 'nullable|date',
+            'tgl_rencana_selesai' => 'nullable|date',
             'id_department' => 'nullable|integer',
+            'work_department' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string',
             'prediksi_penyebab' => 'nullable|string',
             'tindakan' => 'nullable|string',
             'hasil_kesimpulan' => 'nullable|string',
             'saran_solusi' => 'nullable|string',
-            'kode_inventory' => 'nullable|string|max:50',
             'nama_tenant' => 'nullable|string|max:255',
-            'work_department' => 'nullable|string|max:255',
             'status_pekerjaan' => 'nullable|string|max:50',
         ]);
 
@@ -155,13 +155,13 @@ class WorkDataController extends Controller
         // Create work data from work order
         $workData = WorkData::create([
             'no_kerja' => $workOrder->no_work_order,
-            'tanggal_work_data' => now(),
-            'id_department' => null, // Will be set if needed
+            'id_work_order' => $workOrder->id_work_order,
+            'tgl_rencana_mulai' => now(),
+            'id_department' => $workOrder->id_department,
             'deskripsi' => $workOrder->rincian_pekerjaan,
-            'status_pekerjaan' => 'in_progress',
+            'status_pekerjaan' => 'In Progress',
             'nama_tenant' => $workOrder->tenant_name,
-            'work_department' => $workOrder->department,
-            'kode_inventory' => null,
+            'work_department' => $workOrder->department_tujuan,
             'create_id_user' => Auth::id(),
             'status_hapus' => '0',
         ]);
