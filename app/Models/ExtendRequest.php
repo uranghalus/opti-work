@@ -69,6 +69,12 @@ class ExtendRequest extends Model
         $wo = $this->workOrder;
         $dept = $wo?->departmentData;
 
-        return $dept && ! empty($dept->hod_user_id);
+        if (! $dept) {
+            return false;
+        }
+
+        return User::where('department', $dept->id_department)
+            ->whereHas('roles', fn ($q) => $q->where('name', 'team_leader'))
+            ->exists();
     }
 }

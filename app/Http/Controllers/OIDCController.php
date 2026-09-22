@@ -85,9 +85,9 @@ class OIDCController extends Controller
             // 8. Redirect ke dashboard
             return redirect()->intended('/dashboard');
         } catch (\Exception $e) {
-            Log::error('OIDC SSO Callback Error: '.$e->getMessage());
+            Log::error('OIDC SSO Callback Error: ' . $e->getMessage());
 
-            return redirect('/')->with('error', 'Terjadi kesalahan saat login SSO: '.$e->getMessage());
+            return redirect('/')->with('error', 'Terjadi kesalahan saat login SSO: ' . $e->getMessage());
         }
     }
 

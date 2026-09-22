@@ -43,7 +43,18 @@ return [
         'guzzle' => [
             'http_errors' => false,
             'verify' => env('OIDC_VERIFY_SSL', true),
+
         ],
+    ],
+    'saml2' => [
+        'acs' => env('SAML_SSO_URL', 'https://gate.appdutamall.com/saml/sso'),
+        'slo' => env('SAML_SLO_URL', 'https://gate.appdutamall.com/saml/slo'),
+        // Key harus lowercase 'entityid' & 'certificate' sesuai yang dibaca socialiteproviders/saml2
+        'entityid' => env('SAML_ENTITY_ID', 'https://gate.appdutamall.com/saml/metadata'),
+        'metadata' => env('SAML_XML_IDP_METADATA_URL'),
+        'certificate' => env('SAML_CERT'),
+        // SP Assertion Consumer Service = route callback lokal (vendor membangun SP descriptor dari route ini)
+        'sp_acs' => 'auth/oidc/callback',
     ],
     'optigate_portal' => [
         'url' => env('WEB_PORTAL_URL'),

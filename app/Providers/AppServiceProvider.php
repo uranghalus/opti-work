@@ -6,10 +6,10 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use SocialiteProviders\Manager\SocialiteWasCalled;
+use SocialiteProviders\Saml2\Provider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,7 +28,6 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureSocialite();
-
     }
 
     /**
@@ -56,11 +55,8 @@ class AppServiceProvider extends ServiceProvider
 
     protected function configureSocialite(): void
     {
-        Http::globalOptions([
-            'verify' => false,
-        ]);
         Event::listen(function (SocialiteWasCalled $event) {
-            $event->extendSocialite('oidc', OIDCProvider::class);
+            $event->extendSocialite('saml2', Provider::class);
         });
     }
 }

@@ -21,7 +21,7 @@ class WorkOrderWahaNotificationTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = User::factory()->create(['tenant_id' => 1]);
+        $this->user = User::factory()->create(['tenant_id' => 1])->assignRole('karyawan');
         $this->actingAs($this->user);
 
         // Konfigurasi WAHA Settings

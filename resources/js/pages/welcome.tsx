@@ -32,14 +32,14 @@ function useInView(threshold = 0.1) {
     const [isInView, setIsInView] = useState(false);
     useEffect(() => {
         const obs = new IntersectionObserver(([e]) => {
- if (e.isIntersecting) {
-setIsInView(true);
-} 
-}, { threshold });
+            if (e.isIntersecting) {
+                setIsInView(true);
+            }
+        }, { threshold });
 
         if (ref.current) {
-obs.observe(ref.current);
-}
+            obs.observe(ref.current);
+        }
 
         return () => obs.disconnect();
     }, [threshold]);
@@ -52,21 +52,21 @@ function AnimatedCounter({ target, duration = 2000 }: { target: number; duration
     const { ref, isInView } = useInView(0.3);
     useEffect(() => {
         if (!isInView) {
-return;
-}
+            return;
+        }
 
         let start: number;
         const step = (ts: number) => {
- if (!start) {
-start = ts;
-}
+            if (!start) {
+                start = ts;
+            }
 
- const p = Math.min((ts - start) / duration, 1); setCount(Math.floor(p * target));
+            const p = Math.min((ts - start) / duration, 1); setCount(Math.floor(p * target));
 
- if (p < 1) {
-requestAnimationFrame(step);
-} 
-};
+            if (p < 1) {
+                requestAnimationFrame(step);
+            }
+        };
         requestAnimationFrame(step);
     }, [isInView, target, duration]);
 
@@ -85,49 +85,49 @@ export default function Welcome() {
     const ctaRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
- const t = setTimeout(() => setHeroIn(true), 100);
+        const t = setTimeout(() => setHeroIn(true), 100);
 
- return () => clearTimeout(t); 
-}, []);
+        return () => clearTimeout(t);
+    }, []);
 
     useEffect(() => {
         const obs = new IntersectionObserver(([e]) => {
- if (e.isIntersecting) {
- setStatsIn(true); 
-} 
-}, { threshold: 0.2 });
+            if (e.isIntersecting) {
+                setStatsIn(true);
+            }
+        }, { threshold: 0.2 });
 
         if (statsRef.current) {
-obs.observe(statsRef.current);
-}
+            obs.observe(statsRef.current);
+        }
 
         return () => obs.disconnect();
     }, []);
 
     useEffect(() => {
         const obs = new IntersectionObserver(([e]) => {
- if (e.isIntersecting) {
- setFeaturesIn(true); 
-} 
-}, { threshold: 0.1 });
+            if (e.isIntersecting) {
+                setFeaturesIn(true);
+            }
+        }, { threshold: 0.1 });
 
         if (featuresRef.current) {
-obs.observe(featuresRef.current);
-}
+            obs.observe(featuresRef.current);
+        }
 
         return () => obs.disconnect();
     }, []);
 
     useEffect(() => {
         const obs = new IntersectionObserver(([e]) => {
- if (e.isIntersecting) {
- setCtaIn(true); 
-} 
-}, { threshold: 0.2 });
+            if (e.isIntersecting) {
+                setCtaIn(true);
+            }
+        }, { threshold: 0.2 });
 
         if (ctaRef.current) {
-obs.observe(ctaRef.current);
-}
+            obs.observe(ctaRef.current);
+        }
 
         return () => obs.disconnect();
     }, []);
@@ -161,7 +161,7 @@ obs.observe(ctaRef.current);
                                         </span>
                                     </Link>
                                 ) : (
-                                    <a href="/auth/redirect" className="group relative inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:shadow-xl hover:shadow-primary/30 active:scale-[0.97]">
+                                    <a href="/saml/acs" className="group relative inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:shadow-xl hover:shadow-primary/30 active:scale-[0.97]">
                                         Masuk
                                         <span className="flex size-4 items-center justify-center rounded-full bg-white/15 transition-all duration-500 group-hover:translate-x-0.5">
                                             <svg className="size-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
@@ -186,7 +186,7 @@ obs.observe(ctaRef.current);
                                 {auth.user ? (
                                     <Link href={dashboard()} onClick={() => setMenuOpen(false)} className="rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground shadow-lg">Dashboard</Link>
                                 ) : (
-                                    <a href="/auth/redirect" onClick={() => setMenuOpen(false)} className="rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground shadow-lg">Mulai Sekarang</a>
+                                    <a href="/saml/acs" onClick={() => setMenuOpen(false)} className="rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground shadow-lg">Mulai Sekarang</a>
                                 )}
                             </nav>
                         </div>
@@ -234,13 +234,13 @@ obs.observe(ctaRef.current);
                                         </Link>
                                     ) : (
                                         <>
-                                            <a href="/auth/redirect" className="group relative inline-flex items-center gap-2.5 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-xl shadow-primary/25 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-primary/30 active:scale-[0.97]">
+                                            <a href="/saml/acs" className="group relative inline-flex items-center gap-2.5 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-xl shadow-primary/25 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-primary/30 active:scale-[0.97]">
                                                 Mulai Sekarang
                                                 <span className="flex size-6 items-center justify-center rounded-full bg-white/15 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5">
                                                     <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                                                 </span>
                                             </a>
-                                            <a href="/auth/redirect" className="group inline-flex items-center gap-2 rounded-full border border-border bg-background/50 px-8 py-3.5 text-sm font-semibold text-foreground backdrop-blur-sm transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:text-primary hover:shadow-lg active:scale-[0.97]">
+                                            <a href="/saml/acs" className="group inline-flex items-center gap-2 rounded-full border border-border bg-background/50 px-8 py-3.5 text-sm font-semibold text-foreground backdrop-blur-sm transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:text-primary hover:shadow-lg active:scale-[0.97]">
                                                 Pelajari Lebih Lanjut
                                                 <span className="flex size-5 items-center justify-center rounded-full bg-accent transition-all duration-700 group-hover:translate-x-0.5">
                                                     <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
@@ -335,7 +335,7 @@ obs.observe(ctaRef.current);
                                             </span>
                                         </Link>
                                     ) : (
-                                        <a href="/auth/redirect" className="group inline-flex items-center gap-2.5 rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-primary shadow-xl transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:shadow-2xl active:scale-[0.97]">
+                                        <a href="/saml/acs" className="group inline-flex items-center gap-2.5 rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-primary shadow-xl transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:shadow-2xl active:scale-[0.97]">
                                             Mulai Sekarang
                                             <span className="flex size-5 items-center justify-center rounded-full bg-primary/10 transition-all duration-700 group-hover:translate-x-0.5">
                                                 <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>

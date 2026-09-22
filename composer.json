@@ -11,7 +11,6 @@
     "require": {
         "php": "^8.3",
         "inertiajs/inertia-laravel": "^3.0",
-        "kovah/laravel-socialite-oidc": "^0.8.0",
         "laravel/chisel": "^0.1.0",
         "laravel/fortify": "^1.37.2",
         "laravel/framework": "^13.7",
@@ -22,6 +21,7 @@
         "laravel/wayfinder": "^0.1.14",
         "league/flysystem-aws-s3-v3": "^3.34",
         "opcodesio/log-viewer": "^3.24",
+        "socialiteproviders/saml2": "^4.10",
         "spatie/laravel-permission": "^8.3"
     },
     "require-dev": {

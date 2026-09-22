@@ -1,21 +1,7 @@
 
    <laravel-boost-guidelines>
 === foundation rules ===
-# Memory Protocol — Vault: 9router
 
-OpenCode punya akses ke vault Obsidian bernama "9router" lewat MCP tool `obsidian`.
-
-## Struktur memori
-
-- `Memory/opencode-memory.md` — ringkasan konteks proyek, keputusan arsitektur, dan preferensi yang berlaku terus-menerus.
-- `Memory/logs/YYYY-MM-DD.md` — catatan progres per sesi (opsional, buat kalau relevan).
-
-## Aturan
-
-1. Di awal sesi, sebelum mulai kerja, baca isi "Memory/opencode-memory.md" via tool obsidian (get_file_contents) untuk memahami konteks sebelumnya.
-2. Setiap kali ada keputusan penting, konvensi baru, perubahan arsitektur, atau progres signifikan — tambahkan ringkasannya ke "Memory/opencode-memory.md" via append_content atau patch_content.
-3. Jangan pernah menyimpan kredensial, API key, token, atau data sensitif lain ke catatan ini.
-4. Tulis ringkas dan terstruktur (poin-poin), bukan transkrip percakapan mentah.
 # Laravel Boost Guidelines
 
 The Laravel Boost guidelines are specifically curated by Laravel maintainers for this application. These guidelines should be followed closely to ensure the best experience when building Laravel applications.

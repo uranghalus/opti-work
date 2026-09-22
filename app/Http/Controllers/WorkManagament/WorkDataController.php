@@ -4,6 +4,7 @@ namespace App\Http\Controllers\WorkManagament;
 
 use App\Http\Controllers\Controller;
 use App\Models\Department;
+use App\Models\Inventory;
 use App\Models\WorkData;
 use App\Models\WorkOrder;
 use Illuminate\Http\Request;
@@ -75,6 +76,7 @@ class WorkDataController extends Controller
             'work_department' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string',
             'nama_tenant' => 'nullable|string|max:255',
+            'kode_inventory' => 'nullable|string|max:50|exists:tb_inventory,kode_inventory',
         ]);
 
         $validated['create_id_user'] = Auth::id();
@@ -94,8 +96,16 @@ class WorkDataController extends Controller
     {
         $workData->load('department');
 
+        // FR-18: daftar inventaris untuk dropdown link + inventaris yang sedang terhubung
+        $inventories = Inventory::orderBy('kode_barang')->get(['id_inventory', 'kode_barang', 'kode_inventory', 'nama_barang']);
+        $linkedInventory = $workData->kode_inventory
+            ? Inventory::where('kode_inventory', $workData->kode_inventory)->first(['id_inventory'])
+            : null;
+
         return Inertia::render('WorkData/Show', [
             'workData' => $workData,
+            'inventories' => $inventories,
+            'inventory' => $linkedInventory ? ['id_inventory' => $linkedInventory->id_inventory] : null,
         ]);
     }
 
@@ -129,6 +139,7 @@ class WorkDataController extends Controller
             'saran_solusi' => 'nullable|string',
             'nama_tenant' => 'nullable|string|max:255',
             'status_pekerjaan' => 'nullable|string|max:50',
+            'kode_inventory' => 'nullable|string|max:50|exists:tb_inventory,kode_inventory',
         ]);
 
         $validated['modified_id_user'] = Auth::id();

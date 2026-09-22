@@ -22,7 +22,7 @@ class RoleAndPermissionSeeder extends Seeder
         ];
 
         $workOrderPermissions = [
-            'work-order.create', 'work-order.read', 'work-order.update',
+            'work-order.create', 'work-order.read', 'work-order.update', 'work-order.delete',
             'work-order.review', 'work-order.assign', 'work-order.submit', 'work-order.verify',
         ];
 
@@ -34,8 +34,15 @@ class RoleAndPermissionSeeder extends Seeder
             'work-data.create', 'work-data.read', 'work-data.update',
         ];
 
+        $workDataDeletePermissions = ['work-data.delete'];
+
         $dailyWorkPermissions = [
             'daily-work.create', 'daily-work.read', 'daily-work.update',
+        ];
+
+        $inventoryPermissions = [
+            'inventory.create', 'inventory.read', 'inventory.update', 'inventory.delete',
+            'kelompok-barang.create', 'kelompok-barang.read', 'kelompok-barang.update', 'kelompok-barang.delete',
         ];
 
         $systemPermissions = [
@@ -47,7 +54,9 @@ class RoleAndPermissionSeeder extends Seeder
             $workOrderPermissions,
             $workPlanningPermissions,
             $workDataPermissions,
+            $workDataDeletePermissions,
             $dailyWorkPermissions,
+            $inventoryPermissions,
             $systemPermissions,
         );
 
@@ -67,7 +76,9 @@ class RoleAndPermissionSeeder extends Seeder
             $masterDataPermissions,
             $workOrderPermissions,
             $workDataPermissions,
+            $workDataDeletePermissions,
             $dailyWorkPermissions,
+            $inventoryPermissions,
             ['dashboard.read', 'reports.read'],
         ));
 
@@ -79,6 +90,7 @@ class RoleAndPermissionSeeder extends Seeder
             $workPlanningPermissions,
             $workDataPermissions,
             $dailyWorkPermissions,
+            array_map(fn (string $p) => str_replace('.create', '.read', $p), $inventoryPermissions),
             ['dashboard.read', 'reports.read'],
         ));
 
@@ -93,7 +105,9 @@ class RoleAndPermissionSeeder extends Seeder
             ['work-order.read', 'work-order.review', 'work-order.assign', 'work-order.verify'],
             $workPlanningPermissions,
             $workDataPermissions,
+            $workDataDeletePermissions,
             $dailyWorkPermissions,
+            ['inventory.read', 'kelompok-barang.read'],
             ['dashboard.read', 'reports.read'],
         ));
 
@@ -113,6 +127,7 @@ class RoleAndPermissionSeeder extends Seeder
             ['division.read', 'department.read', 'employee.read'],
             ['work-order.create', 'work-order.read', 'work-order.submit'],
             $workDataPermissions,
+            ['daily-work.read', 'daily-work.update'],
             ['dashboard.read'],
         ));
 
@@ -134,6 +149,7 @@ class RoleAndPermissionSeeder extends Seeder
             array_map(fn (string $p) => str_replace('.create', '.read', $p), $workPlanningPermissions),
             array_map(fn (string $p) => str_replace('.create', '.read', $p), $workDataPermissions),
             array_map(fn (string $p) => str_replace('.create', '.read', $p), $dailyWorkPermissions),
+            array_map(fn (string $p) => str_replace('.create', '.read', $p), $inventoryPermissions),
             ['dashboard.read', 'reports.read'],
         ));
     }

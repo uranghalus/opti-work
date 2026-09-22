@@ -1,4 +1,4 @@
-import { Form, Head, Link } from '@inertiajs/react';
+import { Form, Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, FileText, Calendar, Building2, User, Upload, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 
@@ -26,11 +26,20 @@ type WorkData = {
     create_date: string;
 };
 
-type PageProps = {
-    workData: WorkData;
+type InventoryOption = {
+    id_inventory: number;
+    kode_barang: string;
+    kode_inventory: string | null;
+    nama_barang: string;
 };
 
-export default function WorkDataShow({ workData }: PageProps) {
+type PageProps = {
+    workData: WorkData;
+    inventories?: InventoryOption[];
+    inventory?: { id_inventory: number } | null;
+};
+
+export default function WorkDataShow({ workData, inventories = [], inventory = null }: PageProps) {
     const [beforeImage, setBeforeImage] = useState<File | null>(null);
     const [afterImage, setAfterImage] = useState<File | null>(null);
     const [beforePreview, setBeforePreview] = useState<string | null>(null);
@@ -134,10 +143,36 @@ export default function WorkDataShow({ workData }: PageProps) {
                                 </p>
                             </div>
                             <div>
-                                <Label className="text-xs text-neutral-500">Inventory Code</Label>
-                                <p className="mt-1 text-sm text-neutral-900 dark:text-white">
-                                    {workData.kode_inventory || '-'}
-                                </p>
+                                <Label className="text-xs text-neutral-500">Inventory Code (FR-18)</Label>
+                                {inventories.length > 0 ? (
+                                    <div className="mt-1 flex items-center gap-2">
+                                        <select
+                                            defaultValue={workData.kode_inventory ?? ''}
+                                            onChange={(e) => {
+                                                router.visit(window.location.href, {
+                                                    method: 'put',
+                                                    data: { kode_inventory: e.target.value },
+                                                    preserveScroll: true,
+                                                });
+                                            }}
+                                            className="h-8 rounded-lg border border-neutral-200 bg-background px-2 text-sm"
+                                        >
+                                            <option value="">— Tidak terhubung —</option>
+                                            {inventories.map((inv) => (
+                                                <option key={inv.id_inventory} value={inv.kode_inventory ?? ''}>
+                                                    {inv.kode_inventory || inv.kode_barang} · {inv.nama_barang}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {inventory && (
+                                            <Link href={`/inventory/${inventory.id_inventory}`} className="text-xs text-[#0071b7] hover:underline">
+                                                Lihat detail →
+                                            </Link>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <p className="mt-1 text-sm text-neutral-900 dark:text-white">{workData.kode_inventory || '-'}</p>
+                                )}
                             </div>
                         </div>
                     </div>

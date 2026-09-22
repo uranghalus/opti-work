@@ -14,7 +14,7 @@ class ExtendRequestTest extends TestCase
 
     public function test_extend_request_rejects_more_than_three_days(): void
     {
-        $user = User::factory()->create(['tenant_id' => 1]);
+        $user = User::factory()->create(['tenant_id' => 1])->assignRole('karyawan');
         $workOrder = WorkOrder::factory()->create();
 
         $response = $this->actingAs($user)->post(route('work-orders.extend.store', $workOrder), [
@@ -27,20 +27,21 @@ class ExtendRequestTest extends TestCase
 
     public function test_hod_approval_recalculates_deadline(): void
     {
-        $user = User::factory()->create(['tenant_id' => 1]);
+        $requester = User::factory()->create(['tenant_id' => 1])->assignRole('karyawan');
+        $hod = User::factory()->create(['tenant_id' => 1])->assignRole('hod');
         $workOrder = WorkOrder::factory()->create([
             'scheduled_date' => '2026-08-28',
             'deadline_date' => '2026-08-28',
             'extend_count' => 0,
         ]);
 
-        $this->actingAs($user)->post(route('work-orders.extend.store', $workOrder), [
+        $this->actingAs($requester)->post(route('work-orders.extend.store', $workOrder), [
             'extend_days' => 1,
             'extend_reason' => 'Additional time is needed',
         ])->assertRedirect();
 
         $extendRequest = ExtendRequest::firstOrFail();
-        $this->actingAs($user)->post(route('extend-requests.approve-hod', $extendRequest))
+        $this->actingAs($hod)->post(route('extend-requests.approve-hod', $extendRequest))
             ->assertRedirect();
 
         $this->assertSame('approved', $extendRequest->refresh()->status->value);
@@ -51,16 +52,17 @@ class ExtendRequestTest extends TestCase
 
     public function test_hod_can_reject_extend_request(): void
     {
-        $user = User::factory()->create(['tenant_id' => 1]);
+        $requester = User::factory()->create(['tenant_id' => 1])->assignRole('karyawan');
+        $hod = User::factory()->create(['tenant_id' => 1])->assignRole('hod');
         $workOrder = WorkOrder::factory()->create();
 
-        $this->actingAs($user)->post(route('work-orders.extend.store', $workOrder), [
+        $this->actingAs($requester)->post(route('work-orders.extend.store', $workOrder), [
             'extend_days' => 1,
             'extend_reason' => 'Additional time is needed',
         ]);
         $extendRequest = ExtendRequest::firstOrFail();
 
-        $this->actingAs($user)->post(route('extend-requests.reject-hod', $extendRequest), [
+        $this->actingAs($hod)->post(route('extend-requests.reject-hod', $extendRequest), [
             'notes' => 'Not approved',
         ])->assertRedirect();
 

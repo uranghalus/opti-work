@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Calendar, MapPin, User, Building2, FileText, AlertTriangle, Clock, Edit, Camera, Trash2, Hash, Tag, MessageSquare, Image as ImageIcon, ClipboardCheck, UserCheck, CheckCircle2, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -74,6 +74,9 @@ function getPriorityConfig(priorityType: string | null, prioritas: string | null
 }
 
 export default function WorkOrderShow({ workOrder }: PageProps) {
+    const { auth } = usePage().props;
+
+    const can = (permission: string): boolean => (auth.permissions ?? []).includes(permission);
     const { isUrgent, colors } = getPriorityConfig(workOrder.priority_type, workOrder.prioritas);
     const isByAccident = workOrder.urgent_sub_type === 'by_accident';
     const [isLive, setIsLive] = useState(true);
@@ -107,26 +110,30 @@ export default function WorkOrderShow({ workOrder }: PageProps) {
                             <RefreshCw className={cn('size-3', isLive && 'animate-spin')} />
                         </button>
                         <div className="flex items-center gap-2">
-                        {workOrder.status_pekerjaan !== 'completed' && workOrder.status_pekerjaan !== 'rejected' && workOrder.status_pekerjaan !== 'Selesai' && workOrder.status_pekerjaan !== 'Dibatalkan' && (workOrder.extend_count || 0) < 3 && (
+                        {can('work-order.submit') && workOrder.status_pekerjaan !== 'completed' && workOrder.status_pekerjaan !== 'rejected' && workOrder.status_pekerjaan !== 'Selesai' && workOrder.status_pekerjaan !== 'Dibatalkan' && (workOrder.extend_count || 0) < 3 && (
                             <Link href={`/work-orders/${workOrder.id_work_order}/extend`}>
                                 <Button variant="outline" className="gap-2 rounded-full px-5"><Clock className="size-4" />Request Extend</Button>
                             </Link>
                         )}
-                        <Link href={`/work-orders/${workOrder.id_work_order}/edit`}>
-                            <Button variant="outline" className="group gap-2 rounded-full px-5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97]">
-                                <Edit className="size-4" />
-                                Edit
-                            </Button>
-                        </Link>
-                        <Button variant="outline" className="gap-2 rounded-full px-5 text-destructive transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-destructive/10 hover:text-destructive active:scale-[0.97]"
-                            onClick={() => {
+                        {can('work-order.update') && (
+                            <Link href={`/work-orders/${workOrder.id_work_order}/edit`}>
+                                <Button variant="outline" className="group gap-2 rounded-full px-5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97]">
+                                    <Edit className="size-4" />
+                                    Edit
+                                </Button>
+                            </Link>
+                        )}
+                        {can('work-order.delete') && (
+                            <Button variant="outline" className="gap-2 rounded-full px-5 text-destructive transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-destructive/10 hover:text-destructive active:scale-[0.97]"
+                                onClick={() => {
  if (confirm('Are you sure you want to delete this work order?')) {
 router.delete(`/work-orders/${workOrder.id_work_order}`, { preserveScroll: true });
 } 
 }}>
-                            <Trash2 className="size-4" />
-                            Delete
-                        </Button>
+                                <Trash2 className="size-4" />
+                                Delete
+                            </Button>
+                        )}
                         </div>
                     </div>
                 </div>

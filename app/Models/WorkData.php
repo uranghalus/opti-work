@@ -39,6 +39,7 @@ class WorkData extends Model
         'tenant_id',
         'id_department',
         'work_department',
+        'kode_inventory',
     ];
 
     protected $casts = [
