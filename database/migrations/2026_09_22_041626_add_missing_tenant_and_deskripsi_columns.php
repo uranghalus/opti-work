@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::table('tb_schedule_wd', function (Blueprint $table): void {
             if (! Schema::hasColumn('tb_schedule_wd', 'tenant_id')) {
-                $table->unsignedBigInteger('tenant_id')->nullable()->after('id_work_data');
+                $table->unsignedBigInteger('tenant_id')->nullable()->after('rescheduled_from');
                 $table->foreign('tenant_id')->references('id')->on('tenants')->nullOnDelete();
                 $table->index('tenant_id');
             }
@@ -22,7 +22,7 @@ return new class extends Migration
 
         Schema::table('tb_work_data_pekerja', function (Blueprint $table): void {
             if (! Schema::hasColumn('tb_work_data_pekerja', 'tenant_id')) {
-                $table->unsignedBigInteger('tenant_id')->nullable()->after('id_work_data');
+                $table->unsignedBigInteger('tenant_id')->nullable()->after('role_pekerja');
                 $table->foreign('tenant_id')->references('id')->on('tenants')->nullOnDelete();
                 $table->index('tenant_id');
             }

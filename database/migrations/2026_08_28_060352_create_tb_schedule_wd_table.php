@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::create('tb_schedule_wd', function (Blueprint $table) {
             $table->id('id_schedule_wd');
-            $table->foreignId('id_work_data')->constrained('tb_work_data', 'id_work_data')->cascadeOnDelete();
+            $table->unsignedBigInteger('id_work_data');
+            $table->foreign('id_work_data')->references('id_work_data')->on('tb_work_data')->cascadeOnDelete();
+            $table->unsignedBigInteger('rescheduled_from')->nullable();
+            $table->foreign('rescheduled_from')->references('id_schedule_wd')->on('tb_schedule_wd')->nullOnDelete();
             $table->date('tgl_jadwal');
             $table->string('jam_mulai', 10)->nullable(); // HH:MM
             $table->string('jam_selesai', 10)->nullable(); // HH:MM
@@ -22,7 +25,6 @@ return new class extends Migration
             $table->string('lokasi', 255)->nullable();
             $table->string('status_jadwal', 50)->default('scheduled'); // scheduled, in_progress, completed, cancelled, rescheduled
             $table->text('catatan')->nullable();
-            $table->foreignId('rescheduled_from')->nullable()->constrained('tb_schedule_wd', 'id_schedule_wd')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

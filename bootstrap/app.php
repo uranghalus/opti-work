@@ -30,12 +30,20 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
-        $middleware->validateCsrfTokens(except: []);
+        // There is no local login page; guests are sent straight to the SSO portal.
+        $middleware->redirectGuestsTo(fn () => route('saml.redirect'));
 
         $middleware->web(append: [
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+        ]);
+
+        // The SAML assertion consumer service receives signed POST assertions
+        // from the identity provider, which cannot carry our CSRF token.
+        // Relay state and SAML signature validation protect this endpoint.
+        $middleware->validateCsrfTokens(except: [
+            'saml/acs',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

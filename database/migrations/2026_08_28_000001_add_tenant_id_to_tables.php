@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        foreach (['users', 'tb_department', 'tb_division', 'tb_employee', 'tb_work_data', 'tb_work_data_pekerja', 'tb_schedule_wd', 'tb_extend_requests'] as $tableName) {
+        foreach (['users', 'tb_department', 'tb_division', 'tb_employee', 'tb_work_data'] as $tableName) {
             if (! Schema::hasTable($tableName) || Schema::hasColumn($tableName, 'tenant_id')) {
                 continue;
             }

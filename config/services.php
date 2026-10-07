@@ -1,5 +1,7 @@
 <?php
 
+use LightSaml\SamlConstants;
+
 return [
 
     /*
@@ -34,27 +36,31 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-    'oidc' => [
-        'base_url' => env('OIDC_BASE_URL'),
-        'client_id' => env('OIDC_CLIENT_ID'),
-        'client_secret' => env('OIDC_CLIENT_SECRET'),
-        'redirect' => env('OIDC_REDIRECT_URI'),
-        'user_info_url' => env('OIDC_USER_INFO_URL'),
-        'guzzle' => [
-            'http_errors' => false,
-            'verify' => env('OIDC_VERIFY_SSL', true),
-
-        ],
-    ],
     'saml2' => [
-        'acs' => env('SAML_SSO_URL', 'https://gate.appdutamall.com/saml/sso'),
-        'slo' => env('SAML_SLO_URL', 'https://gate.appdutamall.com/saml/slo'),
-        // Key harus lowercase 'entityid' & 'certificate' sesuai yang dibaca socialiteproviders/saml2
-        'entityid' => env('SAML_ENTITY_ID', 'https://gate.appdutamall.com/saml/metadata'),
-        'metadata' => env('SAML_XML_IDP_METADATA_URL'),
-        'certificate' => env('SAML_CERT'),
-        // SP Assertion Consumer Service = route callback lokal (vendor membangun SP descriptor dari route ini)
-        'sp_acs' => 'auth/oidc/callback',
+        // Static IdP configuration — no live HTTP fetch needed at runtime.
+        // Using env values avoids the cURL SSL error that occurred when
+        // fetching the metadata URL from gate.appdutamall.com.
+        'metadata' => null,
+        'entityid' => env('SAML_IDP_ENTITYID'),
+        'certificate' => env('SAML_X509_CERT'),
+        'acs' => env('SAML_SSO_URL'),
+        'slo' => env('SAML_SLO_URL'),
+
+        /*
+        | Service provider (this application) endpoints.
+        |
+        | The assertion consumer service serves both HTTP-POST assertions and
+        | HTTP-Redirect assertions, so SAML messages are accepted regardless
+        | of which binding the identity provider chooses.
+        |
+        | sp_entityid must match exactly what is registered in the Identity Provider portal.
+        */
+        'sp_entityid' => env('SAML_SP_ENTITYID'),
+        'sp_acs' => 'saml/acs',
+        'sp_sls' => 'saml/logout',
+
+        // Both ACS bindings are advertised; initiate with HTTP-Redirect.
+        'sp_default_binding_method' => SamlConstants::BINDING_SAML2_HTTP_REDIRECT,
     ],
     'optigate_portal' => [
         'url' => env('WEB_PORTAL_URL'),

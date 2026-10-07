@@ -7,12 +7,12 @@ use Tests\TestCase;
 class WorkOrderCrudTest extends TestCase
 {
     /**
-     * A basic feature test example.
+     * Tanpa halaman welcome, guest yang membuka root diarahkan ke SSO.
      */
-    public function test_example(): void
+    public function test_guests_are_redirected_to_sso_from_the_root(): void
     {
         $response = $this->get('/');
 
-        $response->assertStatus(200);
+        $response->assertRedirect(route('saml.redirect'));
     }
 }

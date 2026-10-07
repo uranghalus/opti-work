@@ -30,7 +30,7 @@ class TenantCrudTest extends TestCase
     {
         $response = $this->get(route('tenants.index'));
 
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect(route('saml.redirect'));
     }
 
     public function test_authenticated_users_can_view_tenants_index(): void

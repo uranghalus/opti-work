@@ -19,7 +19,7 @@ return new class extends Migration
             $table->timestamp('extend_approved_at')->nullable()->after('extend_approved_by');
             $table->text('extend_approval_notes')->nullable()->after('extend_approved_at');
             $table->string('status_jadwal', 20)->default('planned')->change();
-            $table->softDeletes()->after('timestamps');
+            $table->softDeletes()->after('updated_at');
             $table->unsignedBigInteger('tenant_id')->nullable()->after('catatan');
             $table->unsignedBigInteger('create_id_user')->nullable()->after('tenant_id');
             $table->unsignedBigInteger('modified_id_user')->nullable()->after('create_id_user');

@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('tb_work_data_pekerja', function (Blueprint $table) {
             $table->id('id_work_data_pekerja');
-            $table->foreignId('id_work_data')->constrained('tb_work_data', 'id_work_data')->cascadeOnDelete();
-            $table->foreignId('id_employee')->nullable()->constrained('tb_employee', 'id_employee')->nullOnDelete();
-            $table->foreignId('id_user')->nullable()->constrained('users')->nullOnDelete();
+            $table->unsignedBigInteger('id_work_data');
+            $table->foreign('id_work_data')->references('id_work_data')->on('tb_work_data')->cascadeOnDelete();
+            $table->uuid('id_employee')->nullable();
+            $table->foreign('id_employee')->references('id_employee')->on('tb_employee')->nullOnDelete();
+            $table->foreignId('id_user')->nullable();
+            $table->foreign('id_user')->references('id')->on('users')->nullOnDelete();
             $table->string('role_pekerja', 50)->default('pelaksana'); // pelaksana, koordinator, pengawas
             $table->string('status_alokasi', 50)->default('assigned'); // assigned, accepted, in_progress, completed
             $table->string('catatan', 255)->nullable();

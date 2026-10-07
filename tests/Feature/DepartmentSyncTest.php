@@ -27,14 +27,14 @@ class DepartmentSyncTest extends TestCase
     {
         $response = $this->get(route('departments.index'));
 
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect(route('saml.redirect'));
     }
 
     public function test_guests_cannot_trigger_departments_sync(): void
     {
         $response = $this->post(route('departments.sync'));
 
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect(route('saml.redirect'));
     }
 
     public function test_authenticated_users_can_view_departments_index(): void

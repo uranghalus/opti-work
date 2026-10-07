@@ -40,7 +40,7 @@ class WahaSettingsTest extends TestCase
         $response = $this
             ->get(route('waha.edit'));
 
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect(route('saml.redirect'));
     }
 
     /**

@@ -6,6 +6,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use SocialiteProviders\Manager\SocialiteWasCalled;
@@ -27,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
-        $this->configureSocialite();
+        $this->configureSaml2();
     }
 
     /**
@@ -36,6 +37,13 @@ class AppServiceProvider extends ServiceProvider
     protected function configureDefaults(): void
     {
         Date::use(CarbonImmutable::class);
+
+        // URL generation is anchored to APP_URL, not the request host: the
+        // SAML AuthnRequest Issuer and ACS must stay identical to what the
+        // identity provider registered, regardless of which hostname a
+        // visitor typed (localhost vs 127.0.0.1 vs a LAN IP).
+        URL::forceRootUrl(config('app.url'));
+        URL::forceScheme(str_starts_with((string) config('app.url'), 'https') ? 'https' : 'http');
 
         DB::prohibitDestructiveCommands(
             app()->isProduction(),
@@ -53,7 +61,7 @@ class AppServiceProvider extends ServiceProvider
         );
     }
 
-    protected function configureSocialite(): void
+    protected function configureSaml2(): void
     {
         Event::listen(function (SocialiteWasCalled $event) {
             $event->extendSocialite('saml2', Provider::class);

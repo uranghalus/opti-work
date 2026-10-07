@@ -27,14 +27,14 @@ class DivisionSyncTest extends TestCase
     {
         $response = $this->get(route('divisions.index'));
 
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect(route('saml.redirect'));
     }
 
     public function test_guests_cannot_trigger_divisions_sync(): void
     {
         $response = $this->post(route('divisions.sync'));
 
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect(route('saml.redirect'));
     }
 
     public function test_authenticated_users_can_view_divisions_index(): void
