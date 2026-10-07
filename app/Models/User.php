@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -31,6 +32,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property Employee|null $employee
  */
 #[Fillable(['name', 'email', 'password', 'phone', 'department', 'position', 'last_login_at', 'last_login_ip', 'tenant_id'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
@@ -53,8 +55,30 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * @return BelongsTo<Department, $this>
+     */
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'department', 'id_department');
+    }
+
+    /**
+     * Employee record yang terhubung dengan user ini (dicocokkan lewat email).
+     * Dipakai untuk notifikasi in-app/WA berbasis karyawan.
+     *
+     * @return HasOne<Employee, $this>
+     */
+    public function employee(): HasOne
+    {
+        return $this->hasOne(Employee::class, 'email', 'email');
+    }
+
+    /**
+     * Route notifications for the WAHA WhatsApp channel.
+     */
+    public function routeNotificationForWahaWhatsApp(): ?string
+    {
+        return $this->phone;
     }
 }

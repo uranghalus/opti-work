@@ -239,8 +239,7 @@ class WorkOrderController extends Controller
 
         WorkOrderCreated::dispatch($workOrder);
 
-        // Calculate deadline based on priority type
-        $workOrder->calculateDeadline();
+        // Deadline baru dihitung saat karyawan di-assign (FR-2.1: dari tanggal assign).
 
         // Create notification for HOD
         $hod = $dept?->hod_user_id ? Employee::find($dept->hod_user_id) : null;
@@ -472,6 +471,13 @@ class WorkOrderController extends Controller
             'personnel_count' => $validated['personnel_count'] ?? 0,
         ]);
 
+        // Jika HOD langsung assign saat approve, itu adalah momen assign —
+        // deadline dihitung dari sini (FR-2.1).
+        if (! empty($validated['assigned_employees'])) {
+            $workOrder->update(['assigned_at' => $workOrder->assigned_at ?? now()]);
+            $workOrder->calculateDeadline();
+        }
+
         return redirect()->route('work-orders.show', $workOrder->id_work_order)
             ->with('flash', [
                 'message' => 'Work order approved successfully',
@@ -524,11 +530,12 @@ class WorkOrderController extends Controller
             'assigned_employees' => $validated['assigned_employees'],
             'personnel_count' => $validated['personnel_count'],
             'status_pekerjaan' => 'assigned',
+            'assigned_at' => $workOrder->assigned_at ?? now(),
             'scheduled_date' => $workOrder->scheduled_date ?? now()->toDateString(),
             'keterangan' => $validated['assignment_notes'] ?? $workOrder->keterangan,
         ]);
 
-        // Recalculate deadline from assignment date
+        // Recalculate deadline from assignment date (FR-2.1)
         $workOrder->calculateDeadline();
 
         return redirect()->route('work-orders.show', $workOrder->id_work_order)

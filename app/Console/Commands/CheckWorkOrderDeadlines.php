@@ -2,17 +2,14 @@
 
 namespace App\Console\Commands;
 
-use App\Models\AppNotification;
-use App\Models\Department;
-use App\Models\Employee;
 use App\Models\User;
 use App\Models\WorkOrder;
 use App\Notifications\AppNotificationService;
 use App\Notifications\WorkOrderProgressNotification;
 use App\Services\BusinessDayCalculator;
+use App\Services\EscalationRecipientResolver;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 class CheckWorkOrderDeadlines extends Command implements ShouldBeUnique
@@ -23,8 +20,10 @@ class CheckWorkOrderDeadlines extends Command implements ShouldBeUnique
 
     public int $uniqueFor = 3600;
 
-    public function __construct(private readonly BusinessDayCalculator $calculator)
-    {
+    public function __construct(
+        private readonly BusinessDayCalculator $calculator,
+        private readonly EscalationRecipientResolver $resolver,
+    ) {
         parent::__construct();
     }
 
@@ -39,17 +38,18 @@ class CheckWorkOrderDeadlines extends Command implements ShouldBeUnique
         $escalated = 0;
 
         foreach ($workOrders as $wo) {
-            // Need assignment date — use scheduled_date or created_at
-            $startDate = $wo->scheduled_date ?? $wo->created_at;
+            // Eskalasi dihitung dari tanggal assign (FR-2.1 / FR-2.2).
+            $startDate = $wo->deadlineStartDate();
+
             if (! $startDate) {
                 continue;
             }
 
             $elapsedDays = $this->calculator->daysElapsedSince($startDate);
 
-            // H+3 Escalation — notify Team Leader
+            // H+3 — Team Leader department terkait.
             if ($elapsedDays >= 3 && is_null($wo->escalation_h3_sent_at)) {
-                $this->escalate($wo, 3, $startDate, $elapsedDays);
+                $this->escalate($wo, 3, $elapsedDays);
                 $wo->update([
                     'escalation_h3_sent_at' => now(),
                     'status_pekerjaan' => $wo->status_pekerjaan === 'On Progress' ? $wo->status_pekerjaan : 'On Progress',
@@ -57,16 +57,16 @@ class CheckWorkOrderDeadlines extends Command implements ShouldBeUnique
                 $escalated++;
             }
 
-            // H+5 Escalation — notify HOD
+            // H+5 — HOD (dengan rantai fallback OQ 6).
             if ($elapsedDays >= 5 && is_null($wo->escalation_h5_sent_at)) {
-                $this->escalate($wo, 5, $startDate, $elapsedDays);
+                $this->escalate($wo, 5, $elapsedDays);
                 $wo->update(['escalation_h5_sent_at' => now()]);
                 $escalated++;
             }
 
-            // H+6 Escalation — notify DGM/GM
+            // H+6 — DGM/GM.
             if ($elapsedDays >= 6 && is_null($wo->escalation_h6_sent_at)) {
-                $this->escalate($wo, 6, $startDate, $elapsedDays);
+                $this->escalate($wo, 6, $elapsedDays);
                 $wo->update([
                     'escalation_h6_sent_at' => now(),
                     'is_escalated' => true,
@@ -81,74 +81,41 @@ class CheckWorkOrderDeadlines extends Command implements ShouldBeUnique
         return self::SUCCESS;
     }
 
-    private function escalate(WorkOrder $wo, int $level, $startDate, int $elapsedDays): void
+    private function escalate(WorkOrder $wo, int $level, int $elapsedDays): void
     {
-        $dept = $wo->id_department ? Department::find($wo->id_department) : null;
+        $recipients = $this->resolver->forLevel($wo, $level);
 
-        $recipients = match ($level) {
-            3 => $this->getTeamLeaders($wo),
-            5 => $this->getHods($wo, $dept),
-            6 => $this->getDgmGm(),
-            default => collect(),
-        };
+        if ($recipients->isEmpty()) {
+            Log::warning("Escalation H+{$level} for WO {$wo->no_work_order} has no recipients.");
+
+            return;
+        }
+
+        $message = "⚠️ ESCALATION H+{$level}: Work Order {$wo->no_work_order} telah mencapai hari ke-{$elapsedDays}. "
+            ."Department: {$wo->department_tujuan}. "
+            ."Lokasi: {$wo->lokasi}. "
+            ."Prioritas: {$wo->prioritas}. "
+            .'Segera tindak lanjuti!';
+
+        $data = [
+            'title' => "Escalation H+{$level}",
+            'work_order_id' => $wo->id_work_order,
+            'no_work_order' => $wo->no_work_order,
+            'level' => $level,
+            'elapsed_days' => $elapsedDays,
+            'message' => $message,
+            'url' => "/work-orders/{$wo->id_work_order}",
+        ];
 
         foreach ($recipients as $recipient) {
-            $message = "⚠️ ESCALATION H+{$level}: Work Order {$wo->no_work_order} telah mencapai hari ke-{$elapsedDays}. "
-                ."Department: {$wo->department_tujuan}. "
-                ."Lokasi: {$wo->lokasi}. "
-                ."Prioritas: {$wo->prioritas}. "
-                .'Segera tindak lanjuti!';
+            /** @var User $recipient */
+            AppNotificationService::createForUser($recipient, 'escalation_h'.$level, $data);
 
-            $data = [
-                'title' => "Escalation H+{$level}",
-                'work_order_id' => $wo->id_work_order,
-                'no_work_order' => $wo->no_work_order,
-                'level' => $level,
-                'elapsed_days' => $elapsedDays,
-                'message' => $message,
-                'url' => "/work-orders/{$wo->id_work_order}",
-            ];
-
-            if ($recipient instanceof Employee) {
-                AppNotificationService::create($recipient, 'escalation_h'.$level, $data);
+            if ($recipient->phone) {
                 $recipient->notify(new WorkOrderProgressNotification($wo, 'in_progress', $message));
-            } else {
-                AppNotification::create([
-                    'notifiable_type' => User::class,
-                    'notifiable_id' => $recipient->id,
-                    'type' => 'escalation_h'.$level,
-                    'data' => $data,
-                ]);
             }
 
-            Log::info("Escalation H+{$level} sent for WO {$wo->no_work_order} to ".($recipient->name ?? 'unknown'));
+            Log::info("Escalation H+{$level} sent for WO {$wo->no_work_order} to {$recipient->name}.");
         }
-    }
-
-    private function getTeamLeaders(WorkOrder $wo): Collection
-    {
-        $ids = collect($wo->assigned_employees ?? [])->map(fn ($employee) => is_array($employee) ? ($employee['id'] ?? null) : $employee)->filter();
-        $employees = Employee::whereIn('id_employee', $ids)->get();
-
-        return $employees->isNotEmpty() ? $employees : User::whereHas('roles', fn ($q) => $q->where('name', 'team_leader'))->get();
-    }
-
-    private function getHods(WorkOrder $wo, ?Department $dept): Collection
-    {
-        if ($dept && $dept->hod_user_id) {
-            $hod = Employee::find($dept->hod_user_id);
-            if ($hod) {
-                $user = User::where('email', $hod->email)->first();
-
-                return $user ? collect([$user]) : collect();
-            }
-        }
-
-        return User::whereHas('roles', fn ($q) => $q->where('name', 'hod'))->get();
-    }
-
-    private function getDgmGm(): Collection
-    {
-        return User::whereHas('roles', fn ($q) => $q->whereIn('name', ['deputy_general_manager', 'general_manager']))->get();
     }
 }

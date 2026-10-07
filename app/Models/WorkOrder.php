@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Traits\TenantAware;
 use App\Services\BusinessDayCalculator;
+use Database\Factories\WorkOrderFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 
 class WorkOrder extends Model
 {
+    /** @use HasFactory<WorkOrderFactory> */
     use HasFactory, SoftDeletes, TenantAware;
 
     protected $table = 'tb_work_order';
@@ -36,6 +38,7 @@ class WorkOrder extends Model
         'status_pekerjaan',
         'hod_action',
         'scheduled_date',
+        'assigned_at',
         'assigned_employees',
         'personnel_count',
         'user_requester',
@@ -59,6 +62,7 @@ class WorkOrder extends Model
     protected $casts = [
         'tgl_work_order' => 'date',
         'scheduled_date' => 'date',
+        'assigned_at' => 'datetime',
         'verified_at' => 'datetime',
         'deadline_date' => 'date',
         'escalation_h3_sent_at' => 'datetime',
@@ -79,6 +83,8 @@ class WorkOrder extends Model
 
     /**
      * Mendapatkan URL penuh foto dari S3
+     *
+     * @return array<int, string>
      */
     public function getIncidentPhotosUrlsAttribute(): array
     {
@@ -96,24 +102,45 @@ class WorkOrder extends Model
 
     // --- RELASI ---
 
+    /**
+     * @return HasOne<WorkData, $this>
+     */
     public function workData(): HasOne
     {
         return $this->hasOne(WorkData::class, 'id_work_order', 'id_work_order');
     }
 
+    /**
+     * @return HasMany<WorkPlanning, $this>
+     */
     public function workPlannings(): HasMany
     {
         return $this->hasMany(WorkPlanning::class, 'id_work_order', 'id_work_order');
     }
 
+    /**
+     * @return BelongsTo<Department, $this>
+     */
     public function departmentData(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'id_department', 'id_department');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function modifier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'modified_user', 'id');
+    }
+
+    /**
+     * Titik mula perhitungan deadline & eskalasi (FR-2.1).
+     * Deadline dihitung dari tanggal assign, bukan tanggal submit WO.
+     */
+    public function deadlineStartDate(): ?\DateTimeInterface
+    {
+        return $this->assigned_at ?? $this->scheduled_date ?? $this->created_at;
     }
 
     /**
@@ -123,10 +150,9 @@ class WorkOrder extends Model
     public function calculateDeadline(): void
     {
         $businessDays = $this->priority_type === 'urgent' ? 3 : 6;
-        $startDate = $this->scheduled_date ?? $this->created_at;
 
         $this->update([
-            'deadline_date' => BusinessDayCalculator::addBusinessDays($startDate, $businessDays),
+            'deadline_date' => BusinessDayCalculator::addBusinessDays($this->deadlineStartDate(), $businessDays),
         ]);
     }
 

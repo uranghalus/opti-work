@@ -3,6 +3,8 @@
 namespace App\Events;
 
 use App\Models\AppNotification;
+use App\Models\Employee;
+use App\Models\User;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -20,7 +22,7 @@ class NotificationCreated implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('notifications.'.$this->notification->notifiable_id),
+            new PrivateChannel('notifications.'.$this->recipientUserId()),
         ];
     }
 
@@ -29,6 +31,9 @@ class NotificationCreated implements ShouldBroadcast
         return 'NotificationCreated';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function broadcastWith(): array
     {
         return [
@@ -37,5 +42,31 @@ class NotificationCreated implements ShouldBroadcast
             'data' => $this->notification->data,
             'created_at' => $this->notification->created_at,
         ];
+    }
+
+    /**
+     * Channel realtime selalu di-scope ke user id. Notifikasi bisa ditujukan ke
+     * User (penerima berbasis role) atau Employee (field worker), dan Employee
+     * dipetakan ke User lewat email.
+     */
+    private function recipientUserId(): int|string
+    {
+        $notifiable = $this->notification->notifiable;
+
+        if ($notifiable instanceof User) {
+            return $notifiable->id;
+        }
+
+        if ($notifiable instanceof Employee) {
+            $userId = User::where('email', $notifiable->email)->value('id');
+
+            if ($userId) {
+                return $userId;
+            }
+
+            return $notifiable->id_employee;
+        }
+
+        return $this->notification->notifiable_id;
     }
 }

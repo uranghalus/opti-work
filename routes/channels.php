@@ -6,6 +6,8 @@ Broadcast::channel('work-orders', function ($user) {
     return true;
 });
 
-Broadcast::channel('notifications.{employeeId}', function ($user, $employeeId) {
-    return (string) ($user->employee->id_employee ?? '') === (string) $employeeId;
+// Channel notifikasi realtime di-scope ke user id (penerima bisa User berbasis
+// role maupun Employee field worker yang dipetakan ke user lewat email).
+Broadcast::channel('notifications.{userId}', function ($user, $userId) {
+    return (string) $user->id === (string) $userId;
 });

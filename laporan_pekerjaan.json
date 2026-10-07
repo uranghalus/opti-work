@@ -1,0 +1,211 @@
+﻿[
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Setup Proyek & Inisialisasi Framework: Laravel 13 + Inertia React + Upgrade PHP",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-06-24",
+        "tanggal_selesai": "2026-06-25",
+        "progress": "100"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Manajemen Work Order: CRUD, Kategori Normal/Urgent, Nomor WO Otomatis & Dokumentasi Foto (FR-05, FR-06)",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-06-25",
+        "tanggal_selesai": "2026-06-28",
+        "progress": "100"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Autentikasi & Akses Login: Fortify, SSO OIDC/SAML, Sanctum API & Riwayat Login (FR-04)",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-06-25",
+        "tanggal_selesai": "2026-09-22",
+        "progress": "90"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Manajemen Data Tenant: CRUD Lengkap Multi-Cabang dengan UI (FR-25)",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-06-25",
+        "tanggal_selesai": "2026-09-22",
+        "progress": "100"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Manajemen Work Data: Pengolahan Data Kerja, Upload Gambar Sebelum/Sesudah & Audit Trail (FR-15, FR-18)",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-06-25",
+        "tanggal_selesai": "2026-08-29",
+        "progress": "100"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Master Data: Manajemen Department, Divisi & Karyawan beserta Sinkronisasi Optigate Portal (FR-01, FR-02, FR-03)",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-06-28",
+        "tanggal_selesai": "2026-06-30",
+        "progress": "100"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Daily Work Management: Penetapan & Update Status Pekerjaan Harian (FR-21, FR-22)",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-06-26",
+        "tanggal_selesai": "2026-09-22",
+        "progress": "100"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Notifikasi Realtime (Laravel Echo + Reverb) & Integrasi WhatsApp WAHA: Channel, Webhook & Modul Setting (FR-29)",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-07-06",
+        "tanggal_selesai": "2026-07-09",
+        "progress": "100"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Sprint 1 - RBAC Spatie Permission: 9 Role, Permission Granular per Modul & Manajemen Role Super Admin (FR-30)",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-08-28",
+        "tanggal_selesai": "2026-08-29",
+        "progress": "100"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Sprint 2 - Deadline Otomatis Hari Kerja & Eskalasi H+3/H+5/H+6 via Scheduler (FR-09)",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-08-28",
+        "tanggal_selesai": "2026-08-28",
+        "progress": "100"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Sprint 2 - Extend Work Order: Approval Berjenjang Team Leader - HOD, Maksimal 3 Hari (FR-10)",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-08-28",
+        "tanggal_selesai": "2026-09-22",
+        "progress": "100"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Sprint 2 - Lintas Department Work Order: Pemilihan Department Tujuan & Routing Notifikasi/Approval (FR-19, FR-20)",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-08-28",
+        "tanggal_selesai": "2026-09-22",
+        "progress": "100"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Sprint 2 - Alokasi Pekerja pada Data Kerja & Penjadwalan Data Kerja (WD) dengan Reschedule (FR-16, FR-17)",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-08-28",
+        "tanggal_selesai": "2026-08-28",
+        "progress": "100"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Sprint 2 - Isolasi Data Multi-Tenant: Global Scope, Trait TenantAware & Middleware ensure.tenant (FR-26)",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-08-28",
+        "tanggal_selesai": "2026-09-22",
+        "progress": "100"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Work Planning: Penjadwalan Work Order, Extend Jadwal dengan Approval DGM/GM & Monitoring Status (FR-12, FR-13, FR-14)",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-08-29",
+        "tanggal_selesai": "2026-09-22",
+        "progress": "100"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Penyusunan Product Requirement Document (PRD) Work Management System - 30 Functional Requirements",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-08-29",
+        "tanggal_selesai": "2026-08-29",
+        "progress": "100"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Dashboard Analytics: Statistik Work Order, Tren Mingguan, Progress per Department & Aktivitas Terbaru",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-08-28",
+        "tanggal_selesai": "2026-09-22",
+        "progress": "100"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Sprint 3 - Manajemen Inventory & Kelompok Barang: CRUD + Kolom Dinamis Custom Field (FR-23, FR-24)",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-09-22",
+        "tanggal_selesai": "2026-09-22",
+        "progress": "100"
+    },
+    {
+        "action": "create",
+        "id": "",
+        "project": "6",
+        "parent_id": "",
+        "nama_pekerjaan": "Penulisan Test Suite Menyeluruh: 116 Test Case, 393 Assertions (Extend, Inventory, Work Daily, Work Planning, Tenant Isolation)",
+        "penanggung_jawab": "fauzan",
+        "tanggal_mulai": "2026-09-22",
+        "tanggal_selesai": "2026-09-22",
+        "progress": "100"
+    }
+]

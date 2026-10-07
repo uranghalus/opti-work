@@ -5,9 +5,14 @@ namespace App\Notifications;
 use App\Events\NotificationCreated;
 use App\Models\AppNotification;
 use App\Models\Employee;
+use App\Models\User;
+use App\Models\WorkOrder;
 
 class AppNotificationService
 {
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public static function create(
         Employee $employee,
         string $type,
@@ -25,7 +30,30 @@ class AppNotificationService
         return $notification;
     }
 
-    public static function workOrderCreated(Employee $employee, $workOrder): AppNotification
+    /**
+     * Buat notifikasi in-app yang ditujukan langsung ke User (mis. penerima
+     * eskalasi berbasis role: Team Leader, HOD, DGM/GM).
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function createForUser(
+        User $user,
+        string $type,
+        array $data
+    ): AppNotification {
+        $notification = AppNotification::create([
+            'notifiable_type' => User::class,
+            'notifiable_id' => $user->id,
+            'type' => $type,
+            'data' => $data,
+        ]);
+
+        broadcast(new NotificationCreated($notification));
+
+        return $notification;
+    }
+
+    public static function workOrderCreated(Employee $employee, WorkOrder $workOrder): AppNotification
     {
         return self::create($employee, 'work_order.created', [
             'title' => 'Work Order Baru',
@@ -38,7 +66,7 @@ class AppNotificationService
         ]);
     }
 
-    public static function workOrderStatusChanged(Employee $employee, $workOrder, string $oldStatus): AppNotification
+    public static function workOrderStatusChanged(Employee $employee, WorkOrder $workOrder, string $oldStatus): AppNotification
     {
         $statusLabel = match ($workOrder->status_pekerjaan) {
             'hod_approved' => 'Disetujui HOD',

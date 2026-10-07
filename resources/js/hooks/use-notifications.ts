@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useState } from 'react';
 
 type Notification = {
@@ -17,6 +17,9 @@ type Notification = {
 };
 
 export function useNotifications() {
+    const { auth } = usePage().props;
+    const userId = auth?.user?.id;
+
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -58,8 +61,12 @@ export function useNotifications() {
         }
     }, []);
 
-    // Listen for real-time notifications via Reverb
+    // Listen for real-time notifications via Reverb (channel di-scope ke user id)
     useEffect(() => {
+        if (!userId) {
+            return;
+        }
+
         let echo: any;
 
         const initEcho = async () => {
@@ -67,14 +74,8 @@ export function useNotifications() {
                 const mod = await import('@/echo');
                 echo = mod.default;
 
-                // Get employee ID from page props
-                const pageProps = (window as any).__INERTIA_PAGE_PROPS__;
-                const employeeId = pageProps?.auth?.user?.employee?.id_employee;
-
-                if (!employeeId) return;
-
                 echo
-                    .private(`notifications.${employeeId}`)
+                    .private(`notifications.${userId}`)
                     .listen('.NotificationCreated', (e: any) => {
                         setNotifications((prev) => [e, ...prev]);
                         setUnreadCount((prev) => prev + 1);
@@ -95,7 +96,7 @@ export function useNotifications() {
                 }
             }
         };
-    }, []);
+    }, [userId]);
 
     // Initial fetch
     useEffect(() => {
